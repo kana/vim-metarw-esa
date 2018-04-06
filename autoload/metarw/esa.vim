@@ -44,7 +44,15 @@ endfunction
 
 
 function! metarw#esa#write(fakepath, line1, line2, append_p)  "{{{2
-  return ['error', 'TODO']
+  " Note: append_p is not supported.
+  let tokens = s:parse_fakepath(a:fakepath)
+  if tokens is 0
+    return ['error', 'Invalid path']
+  endif
+
+  let [team_name, post_number, title] = tokens
+
+  return ['write', {-> s:write(team_name, post_number, title, getline(a:line1, a:line2))}]
 endfunction
 
 
@@ -65,13 +73,11 @@ endfunction
 function! s:parse_fakepath(fakepath)  "{{{2
   " TODO: esa:{post_number}
   " esa:{team_name}:{post_number}
+  " esa:{team_name}:{post_number}:{title}
 
-  let tokens = split(a:fakepath, ':')
-  if len(tokens) != 3
-    return 0
-  endif
+  let tokens = matchlist(a:fakepath, '\v^esa:([^:]+):(\d+)%(:(.*))?')
 
-  return tokens[1:]
+  return [tokens[1], tokens[2], tokens[3]]
 endfunction
 
 
@@ -86,6 +92,39 @@ function! s:read(team_name, post_number)  "{{{2
   \ )
   let markdown_content = json_decode(system(fetch_command)).body_md
   return split(markdown_content, '\r\?\n', 1)
+endfunction
+
+
+
+
+function! s:write(team_name, post_number, title, lines)  "{{{2
+  let tokens = split(a:title, '.*\zs/')
+  if 2 <= len(tokens)
+    let category = tokens[0]
+    let name = tokens[1]
+  else
+    let category = ''
+    let name = tokens[0]
+  endif
+  let body_md = join(a:lines, "\n")
+
+  " Note: wip is not supported.
+  let json = {
+  \   'post': {
+  \     'name': name,
+  \     'category': category,
+  \     'body_md': body_md,
+  \   }
+  \ }
+
+  let fetch_command = printf(
+  \   'curl --request "PATCH" --header "Authorization: Bearer %s" --header "Content-Type: application/json" --data %s "https://api.esa.io/v1/teams/%s/posts/%s"',
+  \   s:get_esa_access_token(),
+  \   shellescape(json_encode(json)),
+  \   a:team_name,
+  \   a:post_number
+  \ )
+  call system(fetch_command)
 endfunction
 
 
