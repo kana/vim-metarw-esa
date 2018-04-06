@@ -85,7 +85,7 @@ function! s:read(fakepath)  "{{{2
   let [team_name, post_number, _title] = s:parse_fakepath(a:fakepath)
 
   let fetch_command = printf(
-  \   'curl --header "Authorization: Bearer %s" "https://api.esa.io/v1/teams/%s/posts/%s"',
+  \   'curl --silent --header "Authorization: Bearer %s" "https://api.esa.io/v1/teams/%s/posts/%s"',
   \   s:get_esa_access_token(),
   \   team_name,
   \   post_number
@@ -126,7 +126,7 @@ function! s:write(team_name, post_number, title, lines)  "{{{2
   \ }
 
   let fetch_command = printf(
-  \   'curl --request "PATCH" --header "Authorization: Bearer %s" --header "Content-Type: application/json" --data %s "https://api.esa.io/v1/teams/%s/posts/%s"',
+  \   'curl --silent --request "PATCH" --header "Authorization: Bearer %s" --header "Content-Type: application/json" --data %s "https://api.esa.io/v1/teams/%s/posts/%s"',
   \   s:get_esa_access_token(),
   \   shellescape(json_encode(json)),
   \   a:team_name,
