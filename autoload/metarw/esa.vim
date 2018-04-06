@@ -35,9 +35,7 @@ function! metarw#esa#read(fakepath)  "{{{2
     return ['error', 'Invalid path']
   endif
 
-  let [team_name, post_number] = tokens
-
-  return ['read', {-> s:read(team_name, post_number)}]
+  return ['read', {-> s:read(a:fakepath)}]
 endfunction
 
 
@@ -83,14 +81,24 @@ endfunction
 
 
 
-function! s:read(team_name, post_number)  "{{{2
+function! s:read(fakepath)  "{{{2
+  let [team_name, post_number, _title] = s:parse_fakepath(a:fakepath)
+
   let fetch_command = printf(
   \   'curl --header "Authorization: Bearer %s" "https://api.esa.io/v1/teams/%s/posts/%s"',
   \   s:get_esa_access_token(),
-  \   a:team_name,
-  \   a:post_number
+  \   team_name,
+  \   post_number
   \ )
-  let markdown_content = json_decode(system(fetch_command)).body_md
+  let json = json_decode(system(fetch_command))
+  let markdown_content = json.body_md
+
+  " TODO: This is ad hoc.  This should be determined by what Ex command is
+  " used to invoke s:read.
+  if bufname('%') ==# a:fakepath
+    file `=a:fakepath . ':' . json.full_name`
+  endif
+
   return split(markdown_content, '\r\?\n', 1)
 endfunction
 
