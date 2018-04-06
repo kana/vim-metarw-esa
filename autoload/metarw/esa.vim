@@ -82,7 +82,7 @@ endfunction
 
 
 function! s:read(fakepath)  "{{{2
-  let [team_name, post_number, _title] = s:parse_fakepath(a:fakepath)
+  let [team_name, post_number, title] = s:parse_fakepath(a:fakepath)
 
   let fetch_command = printf(
   \   'curl --silent --header "Authorization: Bearer %s" "https://api.esa.io/v1/teams/%s/posts/%s"',
@@ -95,7 +95,7 @@ function! s:read(fakepath)  "{{{2
 
   " TODO: This is ad hoc.  This should be determined by what Ex command is
   " used to invoke s:read.
-  if bufname('%') ==# a:fakepath
+  if bufname('%') ==# a:fakepath && title == ''
     file `=a:fakepath . ':' . json.full_name`
   endif
 
