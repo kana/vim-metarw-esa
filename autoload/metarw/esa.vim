@@ -30,7 +30,19 @@ endfunction
 
 
 function! metarw#esa#read(fakepath)  "{{{2
-  return ['read', '!seq 100']
+  let tokens = s:parse_fakepath(a:fakepath)
+  if tokens is 0
+    return ['error', 'Invalid path']
+  endif
+
+  let [team_name, post_number] = tokens
+
+  return ['read', printf(
+  \   '!curl --header "Authorization: Bearer %s" "https://api.esa.io/v1/teams/%s/posts/%s"',
+  \   s:get_esa_access_token(),
+  \   team_name,
+  \   post_number,
+  \ )]
 endfunction
 
 
@@ -48,6 +60,24 @@ endfunction
 
 
 " Misc.  "{{{1
+function! s:get_esa_access_token()  "{{{2
+  return readfile('.esa')[0]
+endfunction
+
+
+
+
+function! s:parse_fakepath(fakepath)  "{{{2
+  " TODO: esa:{post_number}
+  " esa:{team_name}:{post_number}
+
+  let tokens = split(a:fakepath, ':')
+  if len(tokens) != 3
+    return 0
+  endif
+
+  return tokens[1:]
+endfunction
 
 
 
