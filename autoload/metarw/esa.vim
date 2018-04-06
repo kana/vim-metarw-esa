@@ -107,7 +107,7 @@ function! s:read(fakepath)  "{{{2
   " TODO: This is ad hoc.  This should be determined by what Ex command is
   " used to invoke s:read.
   if bufname('%') ==# a:fakepath && title == ''
-    file `=a:fakepath . ':' . json.full_name`
+    silent file `=a:fakepath . ':' . json.full_name`
   endif
 
   return split(markdown_content, '\r\?\n', 1)
