@@ -37,12 +37,7 @@ function! metarw#esa#read(fakepath)  "{{{2
 
   let [team_name, post_number] = tokens
 
-  return ['read', printf(
-  \   '!curl --header "Authorization: Bearer %s" "https://api.esa.io/v1/teams/%s/posts/%s"',
-  \   s:get_esa_access_token(),
-  \   team_name,
-  \   post_number,
-  \ )]
+  return ['read', {-> s:read(team_name, post_number)}]
 endfunction
 
 
@@ -77,6 +72,20 @@ function! s:parse_fakepath(fakepath)  "{{{2
   endif
 
   return tokens[1:]
+endfunction
+
+
+
+
+function! s:read(team_name, post_number)  "{{{2
+  let fetch_command = printf(
+  \   'curl --header "Authorization: Bearer %s" "https://api.esa.io/v1/teams/%s/posts/%s"',
+  \   s:get_esa_access_token(),
+  \   a:team_name,
+  \   a:post_number
+  \ )
+  let markdown_content = json_decode(system(fetch_command)).body_md
+  return split(markdown_content, '\r\?\n', 1)
 endfunction
 
 
