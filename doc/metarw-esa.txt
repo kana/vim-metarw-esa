@@ -1,0 +1,115 @@
+*metarw-esa.txt*	metarw scheme: esa
+
+Version 0.0.0
+Copyright (C) 2018 Kana Natsuno <https://whileimautomaton.net/>
+License: MIT license  {{{
+    Permission is hereby granted, free of charge, to any person obtaining
+    a copy of this software and associated documentation files (the
+    "Software"), to deal in the Software without restriction, including
+    without limitation the rights to use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of the Software, and to
+    permit persons to whom the Software is furnished to do so, subject to
+    the following conditions:
+
+    The above copyright notice and this permission notice shall be included
+    in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+    IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+    CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+}}}
+
+CONTENTS					*metarw-esa-contents*
+
+Introduction            |metarw-esa-introduction|
+Set up                  |metarw-esa-set-up|
+Notations               |metarw-esa-notations|
+Customization           |metarw-esa-customization|
+Bugs                    |metarw-esa-bugs|
+Changelog               |metarw-esa-changelog|
+
+
+
+
+==============================================================================
+INTRODUCTION					*metarw-esa-introduction*
+
+*metarw-esa* is a Vim plugin for |metarw| to read and write https://esa.io
+pages with fakepaths like "esa:my-team:1234", or simply "esa:1234".
+
+
+Requirements:
+- Vim 8.0 or later
+- |metarw| 0.1 or later    https://github.com/kana/vim-metarw
+
+Latest version:
+https://github.com/kana/vim-metarw-esa
+
+
+
+
+==============================================================================
+SET UP						*metarw-esa-set-up*
+
+1. Visit https://{your-team}.esa.io/user/applications and generate a new
+   personal access token.
+2. Copy the token and save it into a file `~/.esa-token`.
+
+
+
+
+==============================================================================
+NOTATIONS					*metarw-esa-notations*
+
+In metarw-esa, the following notations are available.
+
+						*esa:{team}:{post}*
+esa:{team}:{post}
+	Show the content of `https://{team}.esa.io/posts/{post}` as markdown.
+
+						*esa:{team}:{post}:{title}*
+esa:{team}:{post}:{title}
+        Same as |esa:{team}:{post}|, but {title} will be used as the title of
+        the post whenever |:write|.
+
+esa:{post}					*esa:{post}*
+esa:{post}:{title}				*esa:{post}:{title}*
+        Like |esa:{team}:{post}| and |esa:{team}:{post}:{title}|, but the
+        value of |g:metarw_esa_default_team_name| is used as {team}.
+
+
+
+
+==============================================================================
+CUSTOMIZATION					*metarw-esa-customization*
+
+                                              *g:metarw_esa_default_team_name*
+g:metarw_esa_default_team_name    (string, default: not defined)
+        This value is used as a default {team} name.
+
+
+
+
+==============================================================================
+BUGS						*metarw-esa-bugs*
+
+- See also https://github.com/kana/vim-metarw-esa/issues
+
+
+
+
+==============================================================================
+CHANGELOG					*metarw-esa-changelog*
+
+0.0.0	2018-04-07T02:01:23+09:00		*metarw-esa-changelog-0.0.0*
+	- Initial version.
+
+
+
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:fen:fdl=0:fdm=marker:
