@@ -62,7 +62,7 @@ endfunction
 
 " Misc.  "{{{1
 function! s:get_esa_access_token()  "{{{2
-  return readfile('.esa')[0]
+  return readfile(expand('~/.esa-token'))[0]
 endfunction
 
 
