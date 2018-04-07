@@ -96,7 +96,9 @@ describe 'metarw-esa'
     Expect b:metarw_esa_wip == v:true
 
     call Set('s:curl', {args -> execute('let b:write_args = args')})
+
     write
+
     Expect b:write_args ==# [
     \   '--silent',
     \   '--request',
@@ -111,6 +113,41 @@ describe 'metarw-esa'
     \     'category': 'poem',
     \     'body_md': "DIN\nDON\nDAN",
     \     'wip': v:true,
+    \   }}),
+    \   'https://api.esa.io/v1/teams/test/posts/1234',
+    \ ]
+  end
+
+  it 'enables to publish an esa post with :write!'
+    call Set('s:curl', {-> json_encode({
+    \   'full_name': 'poem/This is a test',
+    \   'body_md': "DIN\nDON\nDAN",
+    \   'wip': v:true,
+    \ })})
+    edit esa:test:1234
+
+    Expect bufname('%') ==# 'esa:test:1234:poem/This is a test'
+    Expect getline(1, '$') ==# ['DIN', 'DON', 'DAN']
+    Expect b:metarw_esa_wip == v:true
+
+    call Set('s:curl', {args -> execute('let b:write_args = args')})
+
+    write!
+
+    Expect b:write_args ==# [
+    \   '--silent',
+    \   '--request',
+    \   'PATCH',
+    \   '--header',
+    \   'Authorization: Bearer xyzzy',
+    \   '--header',
+    \   'Content-Type: application/json',
+    \   '--data',
+    \   json_encode({'post': {
+    \     'name': 'This is a test',
+    \     'category': 'poem',
+    \     'body_md': "DIN\nDON\nDAN",
+    \     'wip': v:false,
     \   }}),
     \   'https://api.esa.io/v1/teams/test/posts/1234',
     \ ]
