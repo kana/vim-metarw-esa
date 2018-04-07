@@ -107,7 +107,7 @@ endfunction
 
 
 
-function! s:read(fakepath)  "{{{2
+function! s:read(fakepath) abort  "{{{2
   let [team_name, post_number, title] = s:parse_fakepath(a:fakepath)
 
   let json = json_decode(s:.curl([
@@ -132,7 +132,7 @@ endfunction
 
 
 
-function! s:write(team_name, post_number, title, lines)  "{{{2
+function! s:write(team_name, post_number, title, lines) abort  "{{{2
   if !exists('b:metarw_esa_post_number') || b:metarw_esa_post_number != a:post_number
     echoerr 'Writing to another esa post is not supported'
     " Because it seems to be a mistaking to do so.
