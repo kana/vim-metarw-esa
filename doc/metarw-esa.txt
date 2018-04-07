@@ -114,6 +114,12 @@ BUGS						*metarw-esa-bugs*
 ==============================================================================
 CHANGELOG					*metarw-esa-changelog*
 
+0.1.0	2018-04-07T19:06:34+09:00		*metarw-esa-changelog-0.1.0*
+	- Support `:write! esa:{post}:{title}` to ship it.
+	- Treat |esa:{post}| as markdown.
+	- Refuse writing to an esa post from another one to avoid unexpected
+          overwriting.
+
 0.0.0	2018-04-07T02:01:23+09:00		*metarw-esa-changelog-0.0.0*
 	- Initial version.
 
