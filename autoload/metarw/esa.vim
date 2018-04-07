@@ -76,7 +76,7 @@ endfunction
 
 
 
-function! s:get_esa_access_token()  "{{{2
+function! s:.get_esa_access_token()  "{{{2
   return readfile(expand('~/.esa-token'))[0]
 endfunction
 
@@ -113,7 +113,7 @@ function! s:read(fakepath)  "{{{2
   let json = json_decode(s:.curl([
   \   '--silent',
   \   '--header',
-  \   printf('Authorization: Bearer %s', s:get_esa_access_token()),
+  \   printf('Authorization: Bearer %s', s:.get_esa_access_token()),
   \   printf('https://api.esa.io/v1/teams/%s/posts/%s', team_name, post_number),
   \ ]))
   let markdown_content = json.body_md
@@ -160,7 +160,7 @@ function! s:write(team_name, post_number, title, lines)  "{{{2
   \   '--request',
   \   'PATCH',
   \   '--header',
-  \   printf('Authorization: Bearer %s', s:get_esa_access_token()),
+  \   printf('Authorization: Bearer %s', s:.get_esa_access_token()),
   \   '--header',
   \   'Content-Type: application/json',
   \   '--data',
