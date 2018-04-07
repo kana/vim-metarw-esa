@@ -133,6 +133,7 @@ function! s:_read(fakepath) abort
   " used to invoke s:read.
   if bufname('%') ==# a:fakepath && title == ''
     silent file `=a:fakepath . ':' . json.full_name`
+    setfiletype markdown
     let b:metarw_esa_wip = json.wip
     let b:metarw_esa_post_number = post_number
   endif
