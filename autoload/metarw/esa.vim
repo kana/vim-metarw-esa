@@ -107,7 +107,18 @@ endfunction
 
 
 
-function! s:read(fakepath) abort  "{{{2
+function! s:read(fakepath)  "{{{2
+  try
+    return s:_read(a:fakepath)
+  catch
+    let e = v:exception
+  endtry
+
+  echoerr substitute(e, '^Vim(echoerr):', '', '')
+  return []
+endfunction
+
+function! s:_read(fakepath) abort
   let [team_name, post_number, title] = s:parse_fakepath(a:fakepath)
 
   let json = json_decode(s:.curl([
