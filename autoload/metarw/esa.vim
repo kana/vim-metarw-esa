@@ -108,6 +108,7 @@ function! s:read(fakepath)  "{{{2
   " used to invoke s:read.
   if bufname('%') ==# a:fakepath && title == ''
     silent file `=a:fakepath . ':' . json.full_name`
+    let b:metarw_esa_wip = json.wip
   endif
 
   return split(markdown_content, '\r\?\n', 1)
@@ -117,6 +118,9 @@ endfunction
 
 
 function! s:write(team_name, post_number, title, lines)  "{{{2
+  if a:title == ''
+    throw 'Cannot save without title'
+  endif
   let tokens = split(a:title, '.*\zs/')
   if 2 <= len(tokens)
     let category = tokens[0]
@@ -126,13 +130,14 @@ function! s:write(team_name, post_number, title, lines)  "{{{2
     let name = tokens[0]
   endif
   let body_md = join(a:lines, "\n")
+  let wip = v:cmdbang ? v:false : b:metarw_esa_wip
 
-  " Note: wip is not supported.
   let json = {
   \   'post': {
   \     'name': name,
   \     'category': category,
   \     'body_md': body_md,
+  \     'wip': wip,
   \   }
   \ }
 
@@ -144,6 +149,8 @@ function! s:write(team_name, post_number, title, lines)  "{{{2
   \   a:post_number
   \ )
   call system(fetch_command)
+
+  let b:metarw_esa_wip = wip
 endfunction
 
 

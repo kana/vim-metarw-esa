@@ -28,6 +28,7 @@ CONTENTS					*metarw-esa-contents*
 Introduction            |metarw-esa-introduction|
 Set up                  |metarw-esa-set-up|
 Notations               |metarw-esa-notations|
+Tips                    |metarw-esa-tips|
 Customization           |metarw-esa-customization|
 Bugs                    |metarw-esa-bugs|
 Changelog               |metarw-esa-changelog|
@@ -80,6 +81,14 @@ esa:{post}					*esa:{post}*
 esa:{post}:{title}				*esa:{post}:{title}*
         Like |esa:{team}:{post}| and |esa:{team}:{post}:{title}|, but the
         value of |g:metarw_esa_default_team_name| is used as {team}.
+
+
+
+
+==============================================================================
+TIPS						*metarw-esa-tips*
+
+WIP status of a esa post is kept by default.  Use |:w!| to ship it.
 
 
 
