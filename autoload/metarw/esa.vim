@@ -123,6 +123,7 @@ function! s:read(fakepath)  "{{{2
   if bufname('%') ==# a:fakepath && title == ''
     silent file `=a:fakepath . ':' . json.full_name`
     let b:metarw_esa_wip = json.wip
+    let b:metarw_esa_post_number = post_number
   endif
 
   return split(markdown_content, '\r\?\n', 1)
@@ -132,6 +133,11 @@ endfunction
 
 
 function! s:write(team_name, post_number, title, lines)  "{{{2
+  if !exists('b:metarw_esa_post_number') || b:metarw_esa_post_number != a:post_number
+    echoerr 'Writing to another esa post is not supported'
+    " Because it seems to be a mistaking to do so.
+    return
+  endif
   if a:title == ''
     throw 'Cannot save without title'
   endif
