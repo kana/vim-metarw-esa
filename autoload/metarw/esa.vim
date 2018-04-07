@@ -130,13 +130,14 @@ function! s:write(team_name, post_number, title, lines)  "{{{2
     let name = tokens[0]
   endif
   let body_md = join(a:lines, "\n")
+  let wip = v:cmdbang ? v:false : b:metarw_esa_wip
 
   let json = {
   \   'post': {
   \     'name': name,
   \     'category': category,
   \     'body_md': body_md,
-  \     'wip': b:metarw_esa_wip,
+  \     'wip': wip,
   \   }
   \ }
 
@@ -148,6 +149,8 @@ function! s:write(team_name, post_number, title, lines)  "{{{2
   \   a:post_number
   \ )
   call system(fetch_command)
+
+  let b:metarw_esa_wip = wip
 endfunction
 
 
