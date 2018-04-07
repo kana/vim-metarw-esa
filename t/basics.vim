@@ -11,11 +11,15 @@ describe 'metarw-esa'
   end
 
   it 'enables to read an esa post via esa:{team}:{post}'
-    call Set('s:curl', {-> json_encode({
-    \   'full_name': 'poem/This is a test',
-    \   'body_md': "DIN\nDON\nDAN",
-    \   'wip': v:true,
-    \ })})
+    function! Mock(args)
+      let b:read_args = a:args
+      return json_encode({
+      \   'full_name': 'poem/This is a test',
+      \   'body_md': "DIN\nDON\nDAN",
+      \   'wip': v:true,
+      \ })
+    endfunction
+    call Set('s:curl', {args -> Mock(args)})
 
     Expect bufname('%') ==# ''
     Expect getline(1, '$') ==# ['']
@@ -26,6 +30,12 @@ describe 'metarw-esa'
     Expect bufname('%') ==# 'esa:test:1234:poem/This is a test'
     Expect getline(1, '$') ==# ['DIN', 'DON', 'DAN']
     Expect b:metarw_esa_wip == v:true
+    Expect b:read_args ==# [
+    \   '--silent',
+    \   '--header',
+    \   'Authorization: Bearer xyzzy',
+    \   'https://api.esa.io/v1/teams/test/posts/1234',
+    \ ]
   end
 
   it 'enables to read esa:{post} if configured'
