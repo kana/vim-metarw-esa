@@ -38,6 +38,20 @@ describe 'metarw-esa'
     \ ]
   end
 
+  it 'treats an esa post as markdown'
+    call Set('s:curl', {-> json_encode({
+    \   'full_name': 'poem/This is a test',
+    \   'body_md': "DIN\nDON\nDAN",
+    \   'wip': v:true,
+    \ })})
+
+    Expect &l:filetype == ''
+
+    edit esa:test:1234
+
+    Expect &l:filetype ==# 'markdown'
+  end
+
   it 'enables to read esa:{post} if configured'
     call Set('s:curl', {-> json_encode({
     \   'full_name': 'poem/This is a test 2.0',
