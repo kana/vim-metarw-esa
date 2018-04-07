@@ -72,6 +72,17 @@ describe 'metarw-esa'
     Expect exists('b:metarw_esa_wip') to_be_false
   end
 
+  it 'stops as soon as possible if an error occurs while reading an esa post'
+    call Set('s:curl', {-> execute('echoerr "XYZZY"')})
+
+    silent! edit esa:test:5678
+
+    Expect v:errmsg == 'XYZZY'
+    Expect bufname('%') ==# 'esa:test:5678'
+    Expect getline(1, '$') ==# ['']
+    Expect exists('b:metarw_esa_wip') to_be_false
+  end
+
   it 'enables to write an esa post via esa:{team}:{post}:{title}'
     call Set('s:curl', {-> json_encode({
     \   'full_name': 'poem/This is a test',
