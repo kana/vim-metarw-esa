@@ -22,6 +22,13 @@
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
 " Interface  "{{{1
+function! metarw#esa#_scope()  "{{{2
+  return s:
+endfunction
+
+
+
+
 function! metarw#esa#complete(arglead, cmdline, cursorpos)  "{{{2
   return []
 endfunction
