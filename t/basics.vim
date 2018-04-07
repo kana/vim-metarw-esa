@@ -134,4 +134,26 @@ describe 'metarw-esa'
     Expect v:errmsg =~# 'Writing to another esa post is not supported'
     Expect exists('b:write_args') to_be_false
   end
+
+  it 'refuses writing to an esa post without title'
+    call Set('s:curl', {-> json_encode({
+    \   'full_name': 'poem/This is a test 2.0',
+    \   'body_md': "BIM\nBUM\nBAM",
+    \   'wip': v:false,
+    \ })})
+
+    edit esa:test:5678
+
+    Expect bufname('%') ==# 'esa:test:5678:poem/This is a test 2.0'
+    Expect getline(1, '$') ==# ['BIM', 'BUM', 'BAM']
+    Expect b:metarw_esa_wip == v:false
+
+    call Set('s:curl', {args -> execute('let b:write_args = args')})
+
+    file esa:test:5678
+    silent! write
+
+    Expect v:errmsg =~# 'Cannot save without title'
+    Expect exists('b:write_args') to_be_false
+  end
 end
