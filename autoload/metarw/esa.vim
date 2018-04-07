@@ -22,6 +22,13 @@
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
 " Interface  "{{{1
+function! metarw#esa#_scope()  "{{{2
+  return s:
+endfunction
+
+
+
+
 function! metarw#esa#complete(arglead, cmdline, cursorpos)  "{{{2
   return []
 endfunction
@@ -61,7 +68,15 @@ endfunction
 
 
 " Misc.  "{{{1
-function! s:get_esa_access_token()  "{{{2
+function! s:.curl(args)  "{{{2
+  let command = 'curl ' . join(map(a:args, {_, v -> shellescape(v)}), ' ')
+  return system(command)
+endfunction
+
+
+
+
+function! s:.get_esa_access_token()  "{{{2
   return readfile(expand('~/.esa-token'))[0]
 endfunction
 
@@ -93,15 +108,25 @@ endfunction
 
 
 function! s:read(fakepath)  "{{{2
+  try
+    return s:_read(a:fakepath)
+  catch
+    let e = v:exception
+  endtry
+
+  echoerr substitute(e, '^Vim(echoerr):', '', '')
+  return []
+endfunction
+
+function! s:_read(fakepath) abort
   let [team_name, post_number, title] = s:parse_fakepath(a:fakepath)
 
-  let fetch_command = printf(
-  \   'curl --silent --header "Authorization: Bearer %s" "https://api.esa.io/v1/teams/%s/posts/%s"',
-  \   s:get_esa_access_token(),
-  \   team_name,
-  \   post_number
-  \ )
-  let json = json_decode(system(fetch_command))
+  let json = json_decode(s:.curl([
+  \   '--silent',
+  \   '--header',
+  \   printf('Authorization: Bearer %s', s:.get_esa_access_token()),
+  \   printf('https://api.esa.io/v1/teams/%s/posts/%s', team_name, post_number),
+  \ ]))
   let markdown_content = json.body_md
 
   " TODO: This is ad hoc.  This should be determined by what Ex command is
@@ -109,6 +134,7 @@ function! s:read(fakepath)  "{{{2
   if bufname('%') ==# a:fakepath && title == ''
     silent file `=a:fakepath . ':' . json.full_name`
     let b:metarw_esa_wip = json.wip
+    let b:metarw_esa_post_number = post_number
   endif
 
   return split(markdown_content, '\r\?\n', 1)
@@ -118,8 +144,26 @@ endfunction
 
 
 function! s:write(team_name, post_number, title, lines)  "{{{2
+  try
+    call s:_write(a:team_name, a:post_number, a:title, a:lines)
+    return
+  catch
+    let e = v:exception
+  endtry
+
+  echoerr substitute(e, '^Vim(echoerr):', '', '')
+endfunction
+
+function! s:_write(team_name, post_number, title, lines) abort
+  if !exists('b:metarw_esa_post_number') || b:metarw_esa_post_number != a:post_number
+    echoerr 'Writing to another esa post is not supported'
+    " Because it seems to be a mistaking to do so.
+    return
+  endif
   if a:title == ''
-    throw 'Cannot save without title'
+    echoerr 'Cannot save without title'
+    " Because there is something wrong to encounter this situation.
+    return
   endif
   let tokens = split(a:title, '.*\zs/')
   if 2 <= len(tokens)
@@ -141,14 +185,18 @@ function! s:write(team_name, post_number, title, lines)  "{{{2
   \   }
   \ }
 
-  let fetch_command = printf(
-  \   'curl --silent --request "PATCH" --header "Authorization: Bearer %s" --header "Content-Type: application/json" --data %s "https://api.esa.io/v1/teams/%s/posts/%s"',
-  \   s:get_esa_access_token(),
-  \   shellescape(json_encode(json)),
-  \   a:team_name,
-  \   a:post_number
-  \ )
-  call system(fetch_command)
+  call s:.curl([
+  \   '--silent',
+  \   '--request',
+  \   'PATCH',
+  \   '--header',
+  \   printf('Authorization: Bearer %s', s:.get_esa_access_token()),
+  \   '--header',
+  \   'Content-Type: application/json',
+  \   '--data',
+  \   json_encode(json),
+  \   printf('https://api.esa.io/v1/teams/%s/posts/%s', a:team_name, a:post_number),
+  \ ])
 
   let b:metarw_esa_wip = wip
 endfunction
