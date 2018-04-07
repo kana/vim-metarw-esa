@@ -143,7 +143,18 @@ endfunction
 
 
 
-function! s:write(team_name, post_number, title, lines) abort  "{{{2
+function! s:write(team_name, post_number, title, lines)  "{{{2
+  try
+    call s:_write(a:team_name, a:post_number, a:title, a:lines)
+    return
+  catch
+    let e = v:exception
+  endtry
+
+  echoerr substitute(e, '^Vim(echoerr):', '', '')
+endfunction
+
+function! s:_write(team_name, post_number, title, lines) abort
   if !exists('b:metarw_esa_post_number') || b:metarw_esa_post_number != a:post_number
     echoerr 'Writing to another esa post is not supported'
     " Because it seems to be a mistaking to do so.
