@@ -139,7 +139,9 @@ function! s:write(team_name, post_number, title, lines)  "{{{2
     return
   endif
   if a:title == ''
-    throw 'Cannot save without title'
+    echoerr 'Cannot save without title'
+    " Because there is something wrong to encounter this situation.
+    return
   endif
   let tokens = split(a:title, '.*\zs/')
   if 2 <= len(tokens)
