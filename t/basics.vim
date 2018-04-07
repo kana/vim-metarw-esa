@@ -1,6 +1,10 @@
 source t/support/startup.vim
 
 describe 'metarw-esa'
+  before
+    unlet! g:metarw_esa_default_team_name
+  end
+
   after
     ResetContext
     %bdelete!
@@ -20,5 +24,35 @@ describe 'metarw-esa'
 
     Expect bufname('%') ==# 'esa:test:1234:poem/This is a test'
     Expect getline(1, '$') ==# ['DIN', 'DON', 'DAN']
+  end
+
+  it 'enables to read esa:{post} if configured'
+    call Set('s:curl', {-> json_encode({
+    \   'full_name': 'poem/This is a test 2.0',
+    \   'body_md': "BIM\nBUM\nBAM",
+    \   'wip': v:true,
+    \ })})
+    let g:metarw_esa_default_team_name = 'eurobeat'
+
+    Expect bufname('%') ==# ''
+    Expect getline(1, '$') ==# ['']
+
+    edit esa:1234
+
+    Expect bufname('%') ==# 'esa:1234:poem/This is a test 2.0'
+    Expect getline(1, '$') ==# ['BIM', 'BUM', 'BAM']
+  end
+
+  it 'is an error to open esa:{post} without configuration'
+    call Set('s:curl', {-> 'nope'})
+
+    Expect bufname('%') ==# ''
+    Expect getline(1, '$') ==# ['']
+
+    silent! edit esa:1234
+
+    Expect v:errmsg ==# 'Invalid path: esa:1234'
+    Expect bufname('%') ==# 'esa:1234'
+    Expect getline(1, '$') ==# ['']
   end
 end
