@@ -108,6 +108,7 @@ function! s:read(fakepath)  "{{{2
   " used to invoke s:read.
   if bufname('%') ==# a:fakepath && title == ''
     silent file `=a:fakepath . ':' . json.full_name`
+    let b:metarw_esa_wip = json.wip
   endif
 
   return split(markdown_content, '\r\?\n', 1)
@@ -130,12 +131,12 @@ function! s:write(team_name, post_number, title, lines)  "{{{2
   endif
   let body_md = join(a:lines, "\n")
 
-  " Note: wip is not supported.
   let json = {
   \   'post': {
   \     'name': name,
   \     'category': category,
   \     'body_md': body_md,
+  \     'wip': b:metarw_esa_wip,
   \   }
   \ }
 
