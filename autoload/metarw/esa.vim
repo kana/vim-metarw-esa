@@ -61,6 +61,14 @@ endfunction
 
 
 " Misc.  "{{{1
+function! s:.curl(args)  "{{{2
+  let command = 'curl ' . join(map(a:args, {_, v -> shellescape(v)}), ' ')
+  return system(command)
+endfunction
+
+
+
+
 function! s:get_esa_access_token()  "{{{2
   return readfile(expand('~/.esa-token'))[0]
 endfunction
@@ -95,13 +103,12 @@ endfunction
 function! s:read(fakepath)  "{{{2
   let [team_name, post_number, title] = s:parse_fakepath(a:fakepath)
 
-  let fetch_command = printf(
-  \   'curl --silent --header "Authorization: Bearer %s" "https://api.esa.io/v1/teams/%s/posts/%s"',
-  \   s:get_esa_access_token(),
-  \   team_name,
-  \   post_number
-  \ )
-  let json = json_decode(system(fetch_command))
+  let json = json_decode(s:.curl([
+  \   '--silent',
+  \   '--header',
+  \   printf('Authorization: Bearer %s', s:get_esa_access_token()),
+  \   printf('https://api.esa.io/v1/teams/%s/posts/%s', team_name, post_number),
+  \ ]))
   let markdown_content = json.body_md
 
   " TODO: This is ad hoc.  This should be determined by what Ex command is
@@ -141,14 +148,18 @@ function! s:write(team_name, post_number, title, lines)  "{{{2
   \   }
   \ }
 
-  let fetch_command = printf(
-  \   'curl --silent --request "PATCH" --header "Authorization: Bearer %s" --header "Content-Type: application/json" --data %s "https://api.esa.io/v1/teams/%s/posts/%s"',
-  \   s:get_esa_access_token(),
-  \   shellescape(json_encode(json)),
-  \   a:team_name,
-  \   a:post_number
-  \ )
-  call system(fetch_command)
+  call s:.curl([
+  \   '--silent',
+  \   '--request',
+  \   'PATCH',
+  \   '--header',
+  \   printf('Authorization: Bearer %s', s:get_esa_access_token()),
+  \   '--header',
+  \   'Content-Type: application/json',
+  \   '--data',
+  \   json_encode(json),
+  \   printf('https://api.esa.io/v1/teams/%s/posts/%s', a:team_name, a:post_number),
+  \ ])
 
   let b:metarw_esa_wip = wip
 endfunction
