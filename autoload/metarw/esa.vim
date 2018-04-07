@@ -117,6 +117,9 @@ endfunction
 
 
 function! s:write(team_name, post_number, title, lines)  "{{{2
+  if a:title == ''
+    throw 'Cannot save without title'
+  endif
   let tokens = split(a:title, '.*\zs/')
   if 2 <= len(tokens)
     let category = tokens[0]
