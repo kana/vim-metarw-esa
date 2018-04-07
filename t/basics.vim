@@ -239,4 +239,25 @@ describe 'metarw-esa'
     Expect v:errmsg =~# 'Cannot save without title'
     Expect exists('b:write_args') to_be_false
   end
+
+  it 'stops as soon as possible if an error occurs while writing an esa post'
+    call Set('s:curl', {-> json_encode({
+    \   'full_name': 'poem/This is a test',
+    \   'body_md': "DIN\nDON\nDAN",
+    \   'wip': v:true,
+    \ })})
+    edit esa:test:1234
+
+    Expect bufname('%') ==# 'esa:test:1234:poem/This is a test'
+    Expect getline(1, '$') ==# ['DIN', 'DON', 'DAN']
+    Expect b:metarw_esa_wip == v:true
+
+    call Set('s:curl', {-> execute('echoerr "XYZZY"')})
+
+    silent! write!
+
+    Expect v:errmsg =~# 'XYZZY'
+    " This is set to v:false if writing steps did not stop by an error.
+    Expect b:metarw_esa_wip == v:true
+  end
 end
