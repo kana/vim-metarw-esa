@@ -61,4 +61,37 @@ describe 'metarw-esa'
     Expect getline(1, '$') ==# ['']
     Expect exists('b:metarw_esa_wip') to_be_false
   end
+
+  it 'enables to write an esa post via esa:{team}:{post}:{title}'
+    call Set('s:curl', {-> json_encode({
+    \   'full_name': 'poem/This is a test',
+    \   'body_md': "DIN\nDON\nDAN",
+    \   'wip': v:true,
+    \ })})
+    edit esa:test:1234
+
+    Expect bufname('%') ==# 'esa:test:1234:poem/This is a test'
+    Expect getline(1, '$') ==# ['DIN', 'DON', 'DAN']
+    Expect b:metarw_esa_wip == v:true
+
+    call Set('s:curl', {args -> execute('let b:write_args = args')})
+    write
+    Expect b:write_args ==# [
+    \   '--silent',
+    \   '--request',
+    \   'PATCH',
+    \   '--header',
+    \   'Authorization: Bearer xyzzy',
+    \   '--header',
+    \   'Content-Type: application/json',
+    \   '--data',
+    \   json_encode({'post': {
+    \     'name': 'This is a test',
+    \     'category': 'poem',
+    \     'body_md': "DIN\nDON\nDAN",
+    \     'wip': v:true,
+    \   }}),
+    \   'https://api.esa.io/v1/teams/test/posts/1234',
+    \ ]
+  end
 end
