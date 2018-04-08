@@ -1,6 +1,6 @@
 *metarw-esa.txt*	metarw scheme: esa
 
-Version 0.1.0
+Version 0.2.0
 Copyright (C) 2018 Kana Natsuno <https://whileimautomaton.net/>
 License: MIT license  {{{
     Permission is hereby granted, free of charge, to any person obtaining
@@ -85,6 +85,13 @@ esa:{post}:{title}
         to avoid unexpected overwriting.
 
 
+						*esa:new:{title}*
+esa:new:{title}
+        Write-only.  This will create a new esa post.  The current buffer will
+        be renamed as |esa:{post}:{title}| where {post} is the post number of
+        the newly craeted post.
+
+
 
 
 ==============================================================================
@@ -115,6 +122,10 @@ BUGS						*metarw-esa-bugs*
 
 ==============================================================================
 CHANGELOG					*metarw-esa-changelog*
+
+0.2.0	2018-04-09T03:22:47+09:00		*metarw-esa-changelog-0.2.0*
+        - Support |esa:new:{title}| to create a new esa post.
+        - Abolish `esa:{team}:*` notations until supporting multiple teams.
 
 0.1.0	2018-04-07T19:06:34+09:00		*metarw-esa-changelog-0.1.0*
 	- Support `:write! esa:{post}:{title}` to ship it.
