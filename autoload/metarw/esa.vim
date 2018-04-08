@@ -135,7 +135,7 @@ function! s:_read(fakepath) abort
     silent file `=a:fakepath . ':' . json.full_name`
     setfiletype markdown
     let b:metarw_esa_wip = json.wip
-    let b:metarw_esa_post_number = post_number
+    let b:metarw_esa_post_number = str2nr(post_number)
   endif
 
   return split(markdown_content, '\r\?\n', 1)

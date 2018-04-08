@@ -48,6 +48,8 @@ describe 'metarw-esa'
 
     Expect bufname('%') ==# ''
     Expect getline(1, '$') ==# ['']
+    Expect &l:filetype == ''
+    Expect exists('b:metarw_esa_post_number') to_be_false
     Expect exists('b:metarw_esa_wip') to_be_false
 
     silent! edit esa:1234
@@ -55,17 +57,28 @@ describe 'metarw-esa'
     Expect v:errmsg ==# 'Invalid path: esa:1234'
     Expect bufname('%') ==# 'esa:1234'
     Expect getline(1, '$') ==# ['']
+    Expect &l:filetype == ''
+    Expect exists('b:metarw_esa_post_number') to_be_false
     Expect exists('b:metarw_esa_wip') to_be_false
   end
 
   it 'stops as soon as possible if an error occurs while reading an esa post'
     call Set('s:curl', {-> execute('echoerr "XYZZY"')})
 
+    Expect bufname('%') ==# ''
+    Expect getline(1, '$') ==# ['']
+    Expect &l:filetype == ''
+    Expect exists('b:metarw_esa_post_number') to_be_false
+    Expect exists('b:metarw_esa_wip') to_be_false
+
     silent! edit esa:5678
 
     Expect v:errmsg == 'XYZZY'
     Expect bufname('%') ==# 'esa:5678'
     Expect getline(1, '$') ==# ['']
+    Expect exists('b:metarw_esa_wip') to_be_false
+    Expect &l:filetype == ''
+    Expect exists('b:metarw_esa_post_number') to_be_false
     Expect exists('b:metarw_esa_wip') to_be_false
   end
 
@@ -79,6 +92,8 @@ describe 'metarw-esa'
 
     Expect bufname('%') ==# 'esa:1234:poem/This is a test'
     Expect getline(1, '$') ==# ['DIN', 'DON', 'DAN']
+    Expect &l:filetype ==# 'markdown'
+    Expect b:metarw_esa_post_number == 1234
     Expect b:metarw_esa_wip == v:true
 
     call Set('s:curl', {args -> execute('let b:write_args = args')})
@@ -114,6 +129,8 @@ describe 'metarw-esa'
 
     Expect bufname('%') ==# 'esa:1234:poem/This is a test'
     Expect getline(1, '$') ==# ['DIN', 'DON', 'DAN']
+    Expect &l:filetype ==# 'markdown'
+    Expect b:metarw_esa_post_number == 1234
     Expect b:metarw_esa_wip == v:false
 
     call Set('s:curl', {args -> execute('let b:write_args = args')})
@@ -149,6 +166,8 @@ describe 'metarw-esa'
 
     Expect bufname('%') ==# 'esa:1234:poem/This is a test'
     Expect getline(1, '$') ==# ['DIN', 'DON', 'DAN']
+    Expect &l:filetype ==# 'markdown'
+    Expect b:metarw_esa_post_number == 1234
     Expect b:metarw_esa_wip == v:true
 
     call Set('s:curl', {args -> execute('let b:write_args = args')})
@@ -194,6 +213,8 @@ describe 'metarw-esa'
 
     Expect bufname('%') ==# 'esa:5678:poem/This is a test 2.0'
     Expect getline(1, '$') ==# ['BIM', 'BUM', 'BAM']
+    Expect &l:filetype ==# 'markdown'
+    Expect b:metarw_esa_post_number == 5678
     Expect b:metarw_esa_wip == v:false
 
     call Set('s:curl', {args -> execute('let b:write_args = args')})
@@ -215,6 +236,8 @@ describe 'metarw-esa'
 
     Expect bufname('%') ==# 'esa:5678:poem/This is a test 2.0'
     Expect getline(1, '$') ==# ['BIM', 'BUM', 'BAM']
+    Expect &l:filetype ==# 'markdown'
+    Expect b:metarw_esa_post_number == 5678
     Expect b:metarw_esa_wip == v:false
 
     call Set('s:curl', {args -> execute('let b:write_args = args')})
@@ -236,6 +259,8 @@ describe 'metarw-esa'
 
     Expect bufname('%') ==# 'esa:1234:poem/This is a test'
     Expect getline(1, '$') ==# ['DIN', 'DON', 'DAN']
+    Expect &l:filetype ==# 'markdown'
+    Expect b:metarw_esa_post_number == 1234
     Expect b:metarw_esa_wip == v:true
 
     call Set('s:curl', {-> execute('echoerr "XYZZY"')})
