@@ -86,22 +86,17 @@ endfunction
 function! s:parse_fakepath(fakepath)  "{{{2
   " esa:{post_number}
   " esa:{post_number}:{title}
-  " esa:{team_name}:{post_number}
-  " esa:{team_name}:{post_number}:{title}
 
-  let tokens = matchlist(a:fakepath, '\v^esa%(:([^:]+))?:(\d+)%(:(.*))?')
+  let tokens = matchlist(a:fakepath, '\v^esa:(\d+)%(:(.*))?')
 
-  if tokens[1] != ''
-    let team_name = tokens[1]
-  elseif exists('g:metarw_esa_default_team_name')
-    let team_name = g:metarw_esa_default_team_name
-  else
+  if !exists('g:metarw_esa_default_team_name')
     return 0
   endif
-  let post_number = tokens[2]
-  let title = tokens[3]
 
-  return [team_name, post_number, title]
+  let post_number = tokens[1]
+  let title = tokens[2]
+
+  return [g:metarw_esa_default_team_name, post_number, title]
 endfunction
 
 
