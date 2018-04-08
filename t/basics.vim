@@ -2,7 +2,7 @@ source t/support/startup.vim
 
 describe 'metarw-esa'
   before
-    let g:metarw_esa_default_team_name = 'test'
+    let g:metarw_esa_default_team_name = 'myteam'
   end
 
   after
@@ -34,7 +34,7 @@ describe 'metarw-esa'
     \   '--silent',
     \   '--header',
     \   'Authorization: Bearer xyzzy',
-    \   'https://api.esa.io/v1/teams/test/posts/1234',
+    \   'https://api.esa.io/v1/teams/myteam/posts/1234',
     \ ]
   end
 
@@ -110,7 +110,7 @@ describe 'metarw-esa'
     \     'body_md': "DIN\nDON\nDAN",
     \     'wip': v:true,
     \   }}),
-    \   'https://api.esa.io/v1/teams/test/posts/1234',
+    \   'https://api.esa.io/v1/teams/myteam/posts/1234',
     \ ]
   end
 
@@ -145,7 +145,7 @@ describe 'metarw-esa'
     \     'body_md': "DIN\nDON\nDAN",
     \     'wip': v:false,
     \   }}),
-    \   'https://api.esa.io/v1/teams/test/posts/1234',
+    \   'https://api.esa.io/v1/teams/myteam/posts/1234',
     \ ]
   end
 
@@ -180,7 +180,7 @@ describe 'metarw-esa'
     \     'body_md': "DIN\nDON\nDAN",
     \     'wip': v:false,
     \   }}),
-    \   'https://api.esa.io/v1/teams/test/posts/1234',
+    \   'https://api.esa.io/v1/teams/myteam/posts/1234',
     \ ]
   end
 
