@@ -137,6 +137,25 @@ describe 'metarw-esa'
     Expect exists('b:metarw_esa_wip') to_be_false
   end
 
+  it 'is an error to read esa:new:{title}'
+    call Set('s:curl', {-> 'nope'})
+
+    Expect bufname('%') ==# ''
+    Expect getline(1, '$') ==# ['']
+    Expect &l:filetype == ''
+    Expect exists('b:metarw_esa_post_number') to_be_false
+    Expect exists('b:metarw_esa_wip') to_be_false
+
+    silent! edit esa:new:Hi
+
+    Expect v:errmsg ==# 'Invalid path: esa:new:Hi'
+    Expect bufname('%') ==# 'esa:new:Hi'
+    Expect getline(1, '$') ==# ['']
+    Expect &l:filetype == ''
+    Expect exists('b:metarw_esa_post_number') to_be_false
+    Expect exists('b:metarw_esa_wip') to_be_false
+  end
+
   it 'enables to write an esa post via esa:{post}:{title}'
     call Set('s:curl', {-> json_encode({
     \   'full_name': 'poem/This is a test',
