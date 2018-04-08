@@ -24,6 +24,7 @@ describe 'metarw-esa'
     Expect bufname('%') ==# ''
     Expect getline(1, '$') ==# ['']
     Expect &l:filetype == ''
+    Expect exists('b:metarw_esa_post_number') to_be_false
     Expect exists('b:metarw_esa_wip') to_be_false
 
     edit esa:1234
@@ -31,6 +32,7 @@ describe 'metarw-esa'
     Expect bufname('%') ==# 'esa:1234:poem/This is a test'
     Expect getline(1, '$') ==# ['DIN', 'DON', 'DAN']
     Expect &l:filetype ==# 'markdown'
+    Expect b:metarw_esa_post_number == 1234
     Expect b:metarw_esa_wip == v:true
     Expect b:read_args ==# [
     \   '--silent',
