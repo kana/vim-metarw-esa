@@ -137,6 +137,25 @@ describe 'metarw-esa'
     Expect exists('b:metarw_esa_wip') to_be_false
   end
 
+  it 'is an error to read esa:new:{title}'
+    call Set('s:curl', {-> 'nope'})
+
+    Expect bufname('%') ==# ''
+    Expect getline(1, '$') ==# ['']
+    Expect &l:filetype == ''
+    Expect exists('b:metarw_esa_post_number') to_be_false
+    Expect exists('b:metarw_esa_wip') to_be_false
+
+    silent! edit esa:new:Hi
+
+    Expect v:errmsg ==# 'Invalid path: esa:new:Hi'
+    Expect bufname('%') ==# 'esa:new:Hi'
+    Expect getline(1, '$') ==# ['']
+    Expect &l:filetype == ''
+    Expect exists('b:metarw_esa_post_number') to_be_false
+    Expect exists('b:metarw_esa_wip') to_be_false
+  end
+
   it 'enables to write an esa post via esa:{post}:{title}'
     call Set('s:curl', {-> json_encode({
     \   'full_name': 'poem/This is a test',
@@ -309,6 +328,53 @@ describe 'metarw-esa'
     Expect v:errmsg =~# 'XYZZY'
     " This is set to v:false if writing steps did not stop by an error.
     Expect b:metarw_esa_wip == v:true
+  end
+
+  it 'enables to create a new esa post via esa:new:{title}'
+    put =['BACK', 'TO', 'THE', 'NIGHT']
+    1 delete _
+
+    Expect bufname('%') ==# ''
+    Expect getline(1, '$') ==# ['BACK', 'TO', 'THE', 'NIGHT']
+    Expect &l:filetype ==# ''
+    Expect &l:modified to_be_true
+    Expect exists('b:metarw_esa_post_number') to_be_false
+    Expect exists('b:metarw_esa_wip') to_be_false
+
+    function! Mock(args)
+      let b:write_args = a:args
+      return json_encode({
+      \   'number': 888,
+      \   'full_name': 'dev/log/FOO bar BAZ',
+      \ })
+    endfunction
+    call Set('s:curl', {args -> Mock(args)})
+
+    write `='esa:new:dev/log/FOO bar BAZ'`
+
+    Expect bufname('%') ==# 'esa:888:dev/log/FOO bar BAZ'
+    Expect getline(1, '$') ==# ['BACK', 'TO', 'THE', 'NIGHT']
+    Expect &l:filetype ==# 'markdown'
+    Expect &l:modified to_be_false
+    Expect b:metarw_esa_post_number == 888
+    Expect b:metarw_esa_wip == v:true
+    Expect b:write_args ==# [
+    \   '--silent',
+    \   '--request',
+    \   'POST',
+    \   '--header',
+    \   'Authorization: Bearer xyzzy',
+    \   '--header',
+    \   'Content-Type: application/json',
+    \   '--data',
+    \   json_encode({'post': {
+    \     'name': 'FOO bar BAZ',
+    \     'category': 'dev/log',
+    \     'body_md': "BACK\nTO\nTHE\nNIGHT",
+    \     'wip': v:true,
+    \   }}),
+    \   'https://api.esa.io/v1/teams/myteam/posts',
+    \ ]
   end
 
   " TODO: Add tests on error response from esa API.

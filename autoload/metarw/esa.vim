@@ -38,7 +38,7 @@ endfunction
 
 function! metarw#esa#read(fakepath)  "{{{2
   let tokens = s:parse_fakepath(a:fakepath)
-  if tokens is 0
+  if tokens is 0 || tokens[1] ==# 'new'
     return ['error', 'Invalid path']
   endif
 
@@ -86,8 +86,12 @@ endfunction
 function! s:parse_fakepath(fakepath)  "{{{2
   " esa:{post_number}
   " esa:{post_number}:{title}
+  " esa:new:{title}
 
-  let tokens = matchlist(a:fakepath, '\v^esa:(\d+)%(:(.*))?')
+  let tokens = matchlist(a:fakepath, '\v^esa:(\d+|new)%(:(.*))?')
+  if tokens == []
+    return 0
+  endif
 
   if !exists('g:metarw_esa_default_team_name')
     return 0
@@ -151,7 +155,7 @@ function! s:write(team_name, post_number, title, lines)  "{{{2
 endfunction
 
 function! s:_write(team_name, post_number, title, lines) abort
-  if !exists('b:metarw_esa_post_number') || b:metarw_esa_post_number != a:post_number
+  if exists('b:metarw_esa_post_number') ? b:metarw_esa_post_number != a:post_number : a:post_number !=# 'new'
     echoerr 'Writing to another esa post is not supported'
     " Because it seems to be a mistaking to do so.
     return
@@ -170,7 +174,9 @@ function! s:_write(team_name, post_number, title, lines) abort
     let name = tokens[0]
   endif
   let body_md = join(a:lines, "\n")
-  let wip = v:cmdbang ? v:false : b:metarw_esa_wip
+  let wip = v:cmdbang ? v:false
+  \       : exists('b:metarw_esa_wip') ? b:metarw_esa_wip
+  \       : v:true
 
   let json = {
   \   'post': {
@@ -181,20 +187,34 @@ function! s:_write(team_name, post_number, title, lines) abort
   \   }
   \ }
 
-  call s:.curl([
+  if a:post_number ==# 'new'
+    let method = 'POST'
+    let url = printf('https://api.esa.io/v1/teams/%s/posts', a:team_name)
+  else
+    let method = 'PATCH'
+    let url = printf('https://api.esa.io/v1/teams/%s/posts/%s', a:team_name, a:post_number)
+  endif
+
+  let json = json_decode(s:.curl([
   \   '--silent',
   \   '--request',
-  \   'PATCH',
+  \   method,
   \   '--header',
   \   printf('Authorization: Bearer %s', s:.get_esa_access_token()),
   \   '--header',
   \   'Content-Type: application/json',
   \   '--data',
   \   json_encode(json),
-  \   printf('https://api.esa.io/v1/teams/%s/posts/%s', a:team_name, a:post_number),
-  \ ])
+  \   url,
+  \ ]))
 
   let b:metarw_esa_wip = wip
+  if a:post_number ==# 'new'
+    let b:metarw_esa_post_number = json.number
+    silent file `='esa:' . json.number . ':' . json.full_name`
+    setfiletype markdown
+  endif
+  let v:errmsg = ''
 endfunction
 
 
