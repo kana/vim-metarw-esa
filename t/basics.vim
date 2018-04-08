@@ -310,4 +310,6 @@ describe 'metarw-esa'
     " This is set to v:false if writing steps did not stop by an error.
     Expect b:metarw_esa_wip == v:true
   end
+
+  " TODO: Add tests on error response from esa API.
 end
