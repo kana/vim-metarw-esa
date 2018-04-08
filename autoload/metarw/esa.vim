@@ -38,7 +38,7 @@ endfunction
 
 function! metarw#esa#read(fakepath)  "{{{2
   let tokens = s:parse_fakepath(a:fakepath)
-  if tokens is 0
+  if tokens is 0 || tokens[1] ==# 'new'
     return ['error', 'Invalid path']
   endif
 
