@@ -133,16 +133,13 @@ describe 'metarw-esa'
     \ })})
     edit esa:1234
 
-    Expect bufname('%') ==# 'esa:1234:poem/This is a test'
-    Expect getline(1, '$') ==# ['DIN', 'DON', 'DAN']
-    Expect &l:filetype ==# 'markdown'
-    Expect b:metarw_esa_post_number == 1234
     Expect b:metarw_esa_wip == v:false
 
     call Set('s:curl', {args -> execute('let b:write_args = args')})
 
     write
 
+    Expect b:metarw_esa_wip == v:false
     Expect b:write_args ==# [
     \   '--silent',
     \   '--request',
@@ -170,16 +167,13 @@ describe 'metarw-esa'
     \ })})
     edit esa:1234
 
-    Expect bufname('%') ==# 'esa:1234:poem/This is a test'
-    Expect getline(1, '$') ==# ['DIN', 'DON', 'DAN']
-    Expect &l:filetype ==# 'markdown'
-    Expect b:metarw_esa_post_number == 1234
     Expect b:metarw_esa_wip == v:true
 
     call Set('s:curl', {args -> execute('let b:write_args = args')})
 
     write!
 
+    Expect b:metarw_esa_wip == v:false
     Expect b:write_args ==# [
     \   '--silent',
     \   '--request',
@@ -217,12 +211,6 @@ describe 'metarw-esa'
 
     edit esa:5678
 
-    Expect bufname('%') ==# 'esa:5678:poem/This is a test 2.0'
-    Expect getline(1, '$') ==# ['BIM', 'BUM', 'BAM']
-    Expect &l:filetype ==# 'markdown'
-    Expect b:metarw_esa_post_number == 5678
-    Expect b:metarw_esa_wip == v:false
-
     call Set('s:curl', {args -> execute('let b:write_args = args')})
 
     silent! write esa:1234:poem/What
@@ -239,12 +227,6 @@ describe 'metarw-esa'
     \ })})
 
     edit esa:5678
-
-    Expect bufname('%') ==# 'esa:5678:poem/This is a test 2.0'
-    Expect getline(1, '$') ==# ['BIM', 'BUM', 'BAM']
-    Expect &l:filetype ==# 'markdown'
-    Expect b:metarw_esa_post_number == 5678
-    Expect b:metarw_esa_wip == v:false
 
     call Set('s:curl', {args -> execute('let b:write_args = args')})
 
@@ -263,10 +245,6 @@ describe 'metarw-esa'
     \ })})
     edit esa:1234
 
-    Expect bufname('%') ==# 'esa:1234:poem/This is a test'
-    Expect getline(1, '$') ==# ['DIN', 'DON', 'DAN']
-    Expect &l:filetype ==# 'markdown'
-    Expect b:metarw_esa_post_number == 1234
     Expect b:metarw_esa_wip == v:true
 
     call Set('s:curl', {-> execute('echoerr "XYZZY"')})
