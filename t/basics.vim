@@ -10,7 +10,7 @@ describe 'metarw-esa'
     %bdelete!
   end
 
-  it 'enables to read an esa post via esa:{post}'
+  it 'enables to read an esa post as markdown via esa:{post}'
     function! Mock(args)
       let b:read_args = a:args
       return json_encode({
@@ -23,12 +23,14 @@ describe 'metarw-esa'
 
     Expect bufname('%') ==# ''
     Expect getline(1, '$') ==# ['']
+    Expect &l:filetype == ''
     Expect exists('b:metarw_esa_wip') to_be_false
 
     edit esa:1234
 
     Expect bufname('%') ==# 'esa:1234:poem/This is a test'
     Expect getline(1, '$') ==# ['DIN', 'DON', 'DAN']
+    Expect &l:filetype ==# 'markdown'
     Expect b:metarw_esa_wip == v:true
     Expect b:read_args ==# [
     \   '--silent',
@@ -36,20 +38,6 @@ describe 'metarw-esa'
     \   'Authorization: Bearer xyzzy',
     \   'https://api.esa.io/v1/teams/myteam/posts/1234',
     \ ]
-  end
-
-  it 'treats an esa post as markdown'
-    call Set('s:curl', {-> json_encode({
-    \   'full_name': 'poem/This is a test',
-    \   'body_md': "DIN\nDON\nDAN",
-    \   'wip': v:true,
-    \ })})
-
-    Expect &l:filetype == ''
-
-    edit esa:1234
-
-    Expect &l:filetype ==# 'markdown'
   end
 
   it 'is an error to open esa:{post} without configuration'
