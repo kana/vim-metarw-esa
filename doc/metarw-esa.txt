@@ -59,6 +59,7 @@ SET UP						*metarw-esa-set-up*
 1. Visit https://{your-team}.esa.io/user/applications and generate a new
    personal access token.
 2. Copy the token and save it into a file `~/.esa-token`.
+3. Write `let g:metarw_esa_default_team_name = '{your-team}'` in your vimrc.
 
 
 
@@ -68,19 +69,20 @@ NOTATIONS					*metarw-esa-notations*
 
 In metarw-esa, the following notations are available.
 
-						*esa:{team}:{post}*
-esa:{team}:{post}
-	Show the content of `https://{team}.esa.io/posts/{post}` as markdown.
+						*esa:{post}*
+esa:{post}
+        Read-only.  Show the content of `https://{team}.esa.io/posts/{post}`
+        as markdown.  The buffer name for an esa post will be automatically
+        renamed as |esa:{post}:{title}|, where {title} is the title of
+        the post.
 
-						*esa:{team}:{post}:{title}*
-esa:{team}:{post}:{title}
-        Same as |esa:{team}:{post}|, but {title} will be used as the title of
+						*esa:{post}:{title}*
+esa:{post}:{title}
+        Same as |esa:{post}|, but {title} will be used as the title of
         the post whenever |:write|.
 
-esa:{post}					*esa:{post}*
-esa:{post}:{title}				*esa:{post}:{title}*
-        Like |esa:{team}:{post}| and |esa:{team}:{post}:{title}|, but the
-        value of |g:metarw_esa_default_team_name| is used as {team}.
+        Note that this notation cannot be used to :write to another esa post
+        to avoid unexpected overwriting.
 
 
 
@@ -98,7 +100,7 @@ CUSTOMIZATION					*metarw-esa-customization*
 
                                               *g:metarw_esa_default_team_name*
 g:metarw_esa_default_team_name    (string, default: not defined)
-        This value is used as a default {team} name.
+        This value is used as the default {team} name.
 
 
 
