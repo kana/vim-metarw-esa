@@ -78,6 +78,25 @@ describe 'metarw-esa'
     \ ]
   end
 
+  it 'does not support multi-team at the moment'
+    call Set('s:curl', {-> 'nope'})
+
+    Expect bufname('%') ==# ''
+    Expect getline(1, '$') ==# ['']
+    Expect &l:filetype == ''
+    Expect exists('b:metarw_esa_post_number') to_be_false
+    Expect exists('b:metarw_esa_wip') to_be_false
+
+    silent! edit esa:anotherteam:1234
+
+    Expect v:errmsg ==# 'Invalid path: esa:anotherteam:1234'
+    Expect bufname('%') ==# 'esa:anotherteam:1234'
+    Expect getline(1, '$') ==# ['']
+    Expect &l:filetype == ''
+    Expect exists('b:metarw_esa_post_number') to_be_false
+    Expect exists('b:metarw_esa_wip') to_be_false
+  end
+
   it 'is an error to open esa:{post} without configuration'
     unlet! g:metarw_esa_default_team_name
     call Set('s:curl', {-> 'nope'})
