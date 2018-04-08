@@ -42,6 +42,42 @@ describe 'metarw-esa'
     \ ]
   end
 
+  it 'enables also to insert an esa post into the current buffer'
+    function! Mock(args)
+      let b:read_args = a:args
+      return json_encode({
+      \   'full_name': 'poem/This is a test',
+      \   'body_md': "DIN\nDON\nDAN",
+      \   'wip': v:true,
+      \ })
+    endfunction
+    call Set('s:curl', {args -> Mock(args)})
+
+    put =['MY', 'ONLY', 'STAR']
+    1 delete _
+
+    Expect bufname('%') ==# ''
+    Expect getline(1, '$') ==# ['MY', 'ONLY', 'STAR']
+    Expect &l:filetype == ''
+    Expect exists('b:metarw_esa_post_number') to_be_false
+    Expect exists('b:metarw_esa_wip') to_be_false
+
+    2
+    read esa:1234
+
+    Expect bufname('%') ==# ''
+    Expect getline(1, '$') ==# ['MY', 'ONLY', 'DIN', 'DON', 'DAN', 'STAR']
+    Expect &l:filetype ==# ''
+    Expect exists('b:metarw_esa_post_number') to_be_false
+    Expect exists('b:metarw_esa_wip') to_be_false
+    Expect b:read_args ==# [
+    \   '--silent',
+    \   '--header',
+    \   'Authorization: Bearer xyzzy',
+    \   'https://api.esa.io/v1/teams/myteam/posts/1234',
+    \ ]
+  end
+
   it 'is an error to open esa:{post} without configuration'
     unlet! g:metarw_esa_default_team_name
     call Set('s:curl', {-> 'nope'})
