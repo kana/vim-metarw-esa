@@ -93,13 +93,19 @@ describe 'metarw-esa'
     Expect bufname('%') ==# 'esa:1234:poem/This is a test'
     Expect getline(1, '$') ==# ['DIN', 'DON', 'DAN']
     Expect &l:filetype ==# 'markdown'
+    Expect &l:modified to_be_false
     Expect b:metarw_esa_post_number == 1234
     Expect b:metarw_esa_wip == v:true
+
+    $ put ='WOO'
+
+    Expect &l:modified to_be_true
 
     call Set('s:curl', {args -> execute('let b:write_args = args')})
 
     write
 
+    Expect &l:modified to_be_false
     Expect b:write_args ==# [
     \   '--silent',
     \   '--request',
@@ -112,7 +118,7 @@ describe 'metarw-esa'
     \   json_encode({'post': {
     \     'name': 'This is a test',
     \     'category': 'poem',
-    \     'body_md': "DIN\nDON\nDAN",
+    \     'body_md': "DIN\nDON\nDAN\nWOO",
     \     'wip': v:true,
     \   }}),
     \   'https://api.esa.io/v1/teams/myteam/posts/1234',
