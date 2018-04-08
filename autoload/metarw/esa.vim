@@ -214,6 +214,7 @@ function! s:_write(team_name, post_number, title, lines) abort
     silent file `='esa:' . json.number . ':' . json.full_name`
     setfiletype markdown
   endif
+  let v:errmsg = ''
 endfunction
 
 
