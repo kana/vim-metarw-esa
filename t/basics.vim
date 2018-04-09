@@ -353,6 +353,33 @@ describe 'metarw-esa'
     Expect b:metarw_esa_wip == v:true
   end
 
+  it 'is an error when esa responds so while writing'
+    call Set('s:curl', {-> json_encode({
+    \   'full_name': 'poem/This is a test',
+    \   'body_md': "DIN\nDON\nDAN",
+    \   'wip': v:true,
+    \ })})
+
+    edit esa:1234
+    $ put =['WOO']
+
+    Expect &l:modified to_be_true
+    Expect b:metarw_esa_wip == v:true
+
+    call Set('s:curl', {-> json_encode({
+    \   'error': 'not_found',
+    \   'message': 'Not found',
+    \ })})
+
+    silent! write!
+
+    Expect v:errmsg ==# 'Failed to write: esa.io: Not found: esa:1234:poem/This is a test'
+    " This is set to a truthy value if writing steps did not stop by an error.
+    Expect &l:modified to_be_true
+    " This is set to v:false if writing steps did not stop by an error.
+    Expect b:metarw_esa_wip == v:true
+  end
+
   it 'enables to create a new esa post via esa:new:{title}'
     put =['BACK', 'TO', 'THE', 'NIGHT']
     1 delete _
