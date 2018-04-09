@@ -684,5 +684,44 @@ describe 'metarw-esa'
     \ ]
   end
 
+  it 'is an error to use esa:recent:{non-page-stuff}'
+    call Set('s:curl', {-> 'nope'})
+
+    Expect bufname('%') ==# ''
+    Expect getline(1, '$') ==# ['']
+    Expect &l:filetype == ''
+    Expect exists('b:metarw_esa_post_number') to_be_false
+    Expect exists('b:metarw_esa_wip') to_be_false
+
+    silent! edit esa:recent:xxxx
+
+    Expect v:errmsg ==# 'Invalid path: esa:recent:xxxx'
+    Expect bufname('%') ==# 'esa:recent:xxxx'
+    Expect getline(1, '$') ==# ['']
+    Expect &l:filetype == ''
+    Expect exists('b:metarw_esa_post_number') to_be_false
+    Expect exists('b:metarw_esa_wip') to_be_false
+  end
+
+  it 'is an error to write to esa:recent'
+    call Set('s:curl', {-> 'nope'})
+
+    Expect bufname('%') ==# ''
+    Expect getline(1, '$') ==# ['']
+    Expect &l:filetype == ''
+    Expect exists('b:metarw_esa_post_number') to_be_false
+    Expect exists('b:metarw_esa_wip') to_be_false
+
+    silent! write esa:recent
+
+    Expect v:errmsg ==# 'Invalid path: esa:recent'
+    Expect bufname('%') ==# 'esa:recent'
+    Expect getline(1, '$') ==# ['']
+    Expect &l:filetype == ''
+    Expect exists('b:metarw_esa_post_number') to_be_false
+    Expect exists('b:metarw_esa_wip') to_be_false
+  end
+
+
   " TODO: Add tests on error response from esa API.
 end
