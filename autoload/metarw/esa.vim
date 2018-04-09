@@ -178,6 +178,11 @@ function! s:_read(fakepath) abort
   \   printf('Authorization: Bearer %s', s:.get_esa_access_token()),
   \   printf('https://api.esa.io/v1/teams/%s/posts/%s', team_name, post_number),
   \ ]))
+  if has_key(json, 'error')
+    echoerr 'esa.io:' json.message
+    return
+  endif
+
   let markdown_content = json.body_md
 
   " TODO: This is ad hoc.  This should be determined by what Ex command is
