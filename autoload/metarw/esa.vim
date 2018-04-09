@@ -98,13 +98,16 @@ function! s:browse(team_name, page)  "{{{2
 endfunction
 
 function! s:_browse(team_name, page) abort
-  " TODO: Support a:parmas to list an older page.
   let json = json_decode(s:.curl([
   \   '--silent',
   \   '--header',
   \   printf('Authorization: Bearer %s', s:.get_esa_access_token()),
   \   printf('https://api.esa.io/v1/teams/%s/posts?page=%d', a:team_name, a:page),
   \ ]))
+  if has_key(json, 'error')
+    echoerr 'esa.io:' json.message
+    return
+  endif
 
   let prev_page_items = json.prev_page != v:null ? [{
   \   'label': '(prev page)',
@@ -178,6 +181,11 @@ function! s:_read(fakepath) abort
   \   printf('Authorization: Bearer %s', s:.get_esa_access_token()),
   \   printf('https://api.esa.io/v1/teams/%s/posts/%s', team_name, post_number),
   \ ]))
+  if has_key(json, 'error')
+    echoerr 'esa.io:' json.message
+    return
+  endif
+
   let markdown_content = json.body_md
 
   " TODO: This is ad hoc.  This should be determined by what Ex command is
@@ -259,6 +267,10 @@ function! s:_write(team_name, post_number, title, lines) abort
   \   json_encode(json),
   \   url,
   \ ]))
+  if has_key(json, 'error')
+    echoerr 'esa.io:' json.message
+    return
+  endif
 
   let b:metarw_esa_wip = wip
   if a:post_number ==# 'new'

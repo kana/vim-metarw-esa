@@ -137,6 +137,29 @@ describe 'metarw-esa'
     Expect exists('b:metarw_esa_wip') to_be_false
   end
 
+  it 'is an error when esa responds so while reading'
+    call Set('s:curl', {-> json_encode({
+    \   'error': 'not_found',
+    \   'message': 'Not found',
+    \ })})
+
+    Expect bufname('%') ==# ''
+    Expect getline(1, '$') ==# ['']
+    Expect &l:filetype == ''
+    Expect exists('b:metarw_esa_post_number') to_be_false
+    Expect exists('b:metarw_esa_wip') to_be_false
+
+    silent! edit esa:5678
+
+    Expect v:errmsg == 'esa.io: Not found'
+    Expect bufname('%') ==# 'esa:5678'
+    Expect getline(1, '$') ==# ['']
+    Expect exists('b:metarw_esa_wip') to_be_false
+    Expect &l:filetype == ''
+    Expect exists('b:metarw_esa_post_number') to_be_false
+    Expect exists('b:metarw_esa_wip') to_be_false
+  end
+
   it 'is an error to read esa:new:{title}'
     call Set('s:curl', {-> 'nope'})
 
@@ -175,7 +198,11 @@ describe 'metarw-esa'
 
     Expect &l:modified to_be_true
 
-    call Set('s:curl', {args -> execute('let b:write_args = args')})
+    function! Mock(args)
+      let b:write_args = a:args
+      return json_encode({})
+    endfunction
+    call Set('s:curl', {args -> Mock(args)})
 
     write
 
@@ -209,7 +236,11 @@ describe 'metarw-esa'
 
     Expect b:metarw_esa_wip == v:false
 
-    call Set('s:curl', {args -> execute('let b:write_args = args')})
+    function! Mock(args)
+      let b:write_args = a:args
+      return json_encode({})
+    endfunction
+    call Set('s:curl', {args -> Mock(args)})
 
     write
 
@@ -243,7 +274,11 @@ describe 'metarw-esa'
 
     Expect b:metarw_esa_wip == v:true
 
-    call Set('s:curl', {args -> execute('let b:write_args = args')})
+    function! Mock(args)
+      let b:write_args = a:args
+      return json_encode({})
+    endfunction
+    call Set('s:curl', {args -> Mock(args)})
 
     write!
 
@@ -326,6 +361,33 @@ describe 'metarw-esa'
     silent! write!
 
     Expect v:errmsg =~# 'XYZZY'
+    " This is set to v:false if writing steps did not stop by an error.
+    Expect b:metarw_esa_wip == v:true
+  end
+
+  it 'is an error when esa responds so while writing'
+    call Set('s:curl', {-> json_encode({
+    \   'full_name': 'poem/This is a test',
+    \   'body_md': "DIN\nDON\nDAN",
+    \   'wip': v:true,
+    \ })})
+
+    edit esa:1234
+    $ put =['WOO']
+
+    Expect &l:modified to_be_true
+    Expect b:metarw_esa_wip == v:true
+
+    call Set('s:curl', {-> json_encode({
+    \   'error': 'not_found',
+    \   'message': 'Not found',
+    \ })})
+
+    silent! write!
+
+    Expect v:errmsg ==# 'Failed to write: esa.io: Not found: esa:1234:poem/This is a test'
+    " This is set to a truthy value if writing steps did not stop by an error.
+    Expect &l:modified to_be_true
     " This is set to v:false if writing steps did not stop by an error.
     Expect b:metarw_esa_wip == v:true
   end
@@ -742,6 +804,26 @@ describe 'metarw-esa'
     Expect exists('b:metarw_esa_wip') to_be_false
   end
 
+  it 'is an error when esa responds so while listing'
+    call Set('s:curl', {-> json_encode({
+    \   'error': 'not_found',
+    \   'message': 'Not found',
+    \ })})
 
-  " TODO: Add tests on error response from esa API.
+    Expect bufname('%') ==# ''
+    Expect getline(1, '$') ==# ['']
+    Expect &l:filetype == ''
+    Expect exists('b:metarw_esa_post_number') to_be_false
+    Expect exists('b:metarw_esa_wip') to_be_false
+
+    silent! edit esa:recent
+
+    Expect v:errmsg == 'esa.io: Not found: esa:recent'
+    Expect bufname('%') ==# 'esa:recent'
+    Expect getline(1, '$') ==# ['']
+    Expect exists('b:metarw_esa_wip') to_be_false
+    Expect &l:filetype == ''
+    Expect exists('b:metarw_esa_post_number') to_be_false
+    Expect exists('b:metarw_esa_wip') to_be_false
+  end
 end
