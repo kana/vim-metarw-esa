@@ -127,6 +127,9 @@ BUGS						*metarw-esa-bugs*
 ==============================================================================
 CHANGELOG					*metarw-esa-changelog*
 
+0.3.0	2018-04-09T21:05:29+09:00		*metarw-esa-changelog-0.3.0*
+        - Support |esa:recent| to list recent esa posts.
+
 0.2.0	2018-04-09T03:22:47+09:00		*metarw-esa-changelog-0.2.0*
         - Support |esa:new:{title}| to create a new esa post.
         - Abolish `esa:{team}:*` notations until supporting multiple teams.
