@@ -87,9 +87,9 @@ endfunction
 
 
 
-function! s:browse(team_name, params)  "{{{2
+function! s:browse(team_name, page)  "{{{2
   try
-    return s:_browse(a:team_name, a:params)
+    return s:_browse(a:team_name, a:page)
   catch
     let e = v:exception
   endtry
@@ -98,7 +98,7 @@ function! s:browse(team_name, params)  "{{{2
   return []
 endfunction
 
-function! s:_browse(team_name, params) abort
+function! s:_browse(team_name, page) abort
   " TODO: Support a:parmas to list an older page.
   let json = json_decode(s:.curl([
   \   '--silent',
@@ -130,10 +130,14 @@ function! s:parse_fakepath(fakepath)  "{{{2
   " esa:{post_number}:{title}
   " esa:new:{title}
   " esa:recent
-  " esa:recent:{params}
+  " esa:recent:{page}
 
   let tokens = matchlist(a:fakepath, '\v^esa:(\d+|new|recent)%(:(.*))?')
   if tokens == []
+    return 0
+  endif
+
+  if tokens[1] ==# 'recent' && tokens[2] !~# '^\d*$'
     return 0
   endif
 
