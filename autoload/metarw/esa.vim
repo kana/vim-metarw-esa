@@ -145,10 +145,19 @@ function! s:parse_fakepath(fakepath)  "{{{2
     return 0
   endif
 
-  let post_number = tokens[1]
-  let title = tokens[2]
+  if tokens[1] ==# 'recent'
+    let page = tokens[2]
+    if page !~# '^\d*$'
+      return 0
+    endif
 
-  return [g:metarw_esa_default_team_name, post_number, title]
+    return [g:metarw_esa_default_team_name, 'recent', page != '' ? page : 1]
+  else
+    let post_number = tokens[1]
+    let title = tokens[2]
+
+    return [g:metarw_esa_default_team_name, post_number, title]
+  endif
 endfunction
 
 
