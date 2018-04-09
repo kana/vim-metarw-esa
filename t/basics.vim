@@ -198,7 +198,11 @@ describe 'metarw-esa'
 
     Expect &l:modified to_be_true
 
-    call Set('s:curl', {args -> execute('let b:write_args = args')})
+    function! Mock(args)
+      let b:write_args = a:args
+      return json_encode({})
+    endfunction
+    call Set('s:curl', {args -> Mock(args)})
 
     write
 
@@ -232,7 +236,11 @@ describe 'metarw-esa'
 
     Expect b:metarw_esa_wip == v:false
 
-    call Set('s:curl', {args -> execute('let b:write_args = args')})
+    function! Mock(args)
+      let b:write_args = a:args
+      return json_encode({})
+    endfunction
+    call Set('s:curl', {args -> Mock(args)})
 
     write
 
@@ -266,7 +274,11 @@ describe 'metarw-esa'
 
     Expect b:metarw_esa_wip == v:true
 
-    call Set('s:curl', {args -> execute('let b:write_args = args')})
+    function! Mock(args)
+      let b:write_args = a:args
+      return json_encode({})
+    endfunction
+    call Set('s:curl', {args -> Mock(args)})
 
     write!
 
