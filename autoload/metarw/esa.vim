@@ -264,6 +264,10 @@ function! s:_write(team_name, post_number, title, lines) abort
   \   json_encode(json),
   \   url,
   \ ]))
+  if has_key(json, 'error')
+    echoerr 'esa.io:' json.message
+    return
+  endif
 
   let b:metarw_esa_wip = wip
   if a:post_number ==# 'new'
