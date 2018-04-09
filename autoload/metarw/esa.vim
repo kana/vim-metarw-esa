@@ -43,7 +43,7 @@ function! metarw#esa#read(fakepath)  "{{{2
   endif
 
   if tokens[1] ==# 'recent'
-    return ['browse', s:browse(tokens[0], tokens[2])]
+    return s:browse(tokens[0], tokens[2])
   else
     return ['read', {-> s:read(a:fakepath)}]
   endif
@@ -89,13 +89,12 @@ endfunction
 
 function! s:browse(team_name, page)  "{{{2
   try
-    return s:_browse(a:team_name, a:page)
+    return ['browse', s:_browse(a:team_name, a:page)]
   catch
     let e = v:exception
   endtry
 
-  echoerr substitute(e, '^Vim(echoerr):', '', '')
-  return []
+  return ['error', substitute(e, '^Vim(echoerr):', '', '')]
 endfunction
 
 function! s:_browse(team_name, page) abort
