@@ -137,10 +137,6 @@ function! s:parse_fakepath(fakepath)  "{{{2
     return 0
   endif
 
-  if tokens[1] ==# 'recent' && tokens[2] !~# '^\d*$'
-    return 0
-  endif
-
   if !exists('g:metarw_esa_default_team_name')
     return 0
   endif
