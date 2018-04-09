@@ -51,7 +51,7 @@ endfunction
 function! metarw#esa#write(fakepath, line1, line2, append_p)  "{{{2
   " Note: append_p is not supported.
   let tokens = s:parse_fakepath(a:fakepath)
-  if tokens is 0
+  if tokens is 0 || tokens[1] ==# 'recent'
     return ['error', 'Invalid path']
   endif
 
@@ -87,8 +87,10 @@ function! s:parse_fakepath(fakepath)  "{{{2
   " esa:{post_number}
   " esa:{post_number}:{title}
   " esa:new:{title}
+  " esa:recent
+  " esa:recent:{params}
 
-  let tokens = matchlist(a:fakepath, '\v^esa:(\d+|new)%(:(.*))?')
+  let tokens = matchlist(a:fakepath, '\v^esa:(\d+|new|recent)%(:(.*))?')
   if tokens == []
     return 0
   endif
