@@ -175,18 +175,35 @@ endfunction
 function! s:_read(fakepath) abort
   let [team_name, post_number, title] = s:parse_fakepath(a:fakepath)
 
-  let json = json_decode(s:.curl([
+  let b:metarw_esa_state = 'loading'
+  " TODO: Make it mockable.
+  let b:metarw_esa_job = job_start([
+  \   'curl',
   \   '--silent',
   \   '--header',
   \   printf('Authorization: Bearer %s', s:.get_esa_access_token()),
   \   printf('https://api.esa.io/v1/teams/%s/posts/%s', team_name, post_number),
-  \ ]))
+  \ ], {
+  \   'close_cb': {channel -> s:_read_after_curl(channel, a:fakepath, bufnr(''))}
+  \ } )
+  return ['Now loading...']
+endfunction
+
+function! s:_read_after_curl(channel, fakepath, bufnr) abort
+  " TODO: Use bufnr to buffer-local operations.
+  let lines = []
+  while ch_status(a:channel, {'part': 'out'}) ==# 'buffered'
+    call add(lines, ch_read(a:channel))
+  endwhile
+  let response = join(lines, "\n")
+
+  let json = json_decode(response)
   if has_key(json, 'error')
     echoerr 'esa.io:' json.message
     return
   endif
 
-  let markdown_content = json.body_md
+  let [team_name, post_number, title] = s:parse_fakepath(a:fakepath)
 
   " TODO: This is ad hoc.  This should be determined by what Ex command is
   " used to invoke s:read.
@@ -197,7 +214,18 @@ function! s:_read(fakepath) abort
     let b:metarw_esa_post_number = str2nr(post_number)
   endif
 
-  return split(markdown_content, '\r\?\n', 1)
+  " Replace tofu with the actual content.
+  % delete _
+  1 put =split(json.body_md, '\r\?\n', 1)
+  1 delete _
+
+  " Clear undo history to avoid undoing to nothing.
+  let undolevels = &l:undolevels
+  let &l:undolevels = -1
+  execute 'normal!' "a \<BS>\<Esc>"
+  let &l:undolevels = undolevels
+
+  setlocal nomodified
 endfunction
 
 
