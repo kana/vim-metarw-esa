@@ -804,6 +804,26 @@ describe 'metarw-esa'
     Expect exists('b:metarw_esa_wip') to_be_false
   end
 
+  it 'is an error when esa responds so while listing'
+    call Set('s:curl', {-> json_encode({
+    \   'error': 'not_found',
+    \   'message': 'Not found',
+    \ })})
 
-  " TODO: Add tests on error response from esa API.
+    Expect bufname('%') ==# ''
+    Expect getline(1, '$') ==# ['']
+    Expect &l:filetype == ''
+    Expect exists('b:metarw_esa_post_number') to_be_false
+    Expect exists('b:metarw_esa_wip') to_be_false
+
+    silent! edit esa:recent
+
+    Expect v:errmsg == 'esa.io: Not found: esa:recent'
+    Expect bufname('%') ==# 'esa:recent'
+    Expect getline(1, '$') ==# ['']
+    Expect exists('b:metarw_esa_wip') to_be_false
+    Expect &l:filetype == ''
+    Expect exists('b:metarw_esa_post_number') to_be_false
+    Expect exists('b:metarw_esa_wip') to_be_false
+  end
 end
