@@ -42,7 +42,11 @@ function! metarw#esa#read(fakepath)  "{{{2
     return ['error', 'Invalid path']
   endif
 
-  return ['read', {-> s:read(a:fakepath)}]
+  if tokens[1] ==# 'recent'
+    return ['browse', s:browse(tokens[0], tokens[2])]
+  else
+    return ['read', {-> s:read(a:fakepath)}]
+  endif
 endfunction
 
 
@@ -78,6 +82,44 @@ endfunction
 
 function! s:.get_esa_access_token()  "{{{2
   return readfile(expand('~/.esa-token'))[0]
+endfunction
+
+
+
+
+function! s:browse(team_name, params)  "{{{2
+  try
+    return s:_browse(a:team_name, a:params)
+  catch
+    let e = v:exception
+  endtry
+
+  echoerr substitute(e, '^Vim(echoerr):', '', '')
+  return []
+endfunction
+
+function! s:_browse(team_name, params) abort
+  " TODO: Support a:parmas to list an older page.
+  let json = json_decode(s:.curl([
+  \   '--silent',
+  \   '--header',
+  \   printf('Authorization: Bearer %s', s:.get_esa_access_token()),
+  \   printf('https://api.esa.io/v1/teams/%s/posts?page=%d', a:team_name, a:page),
+  \ ]))
+
+  let prev_page_items = json.prev_page != v:null ? [{
+  \   'label': '(prev page)',
+  \   'fakepath': json.prev_page == 1 ? 'esa:recent' : 'esa:recent:' . json.prev_page,
+  \ }] : []
+  let next_page_items = json.next_page != v:null ? [{
+  \   'label': '(next page)',
+  \   'fakepath': 'esa:recent:' . json.next_page,
+  \ }] : []
+  let post_items = map(json.posts, {_, v -> {
+  \   'label': v.full_name,
+  \   'fakepath': 'esa:' . v.number,
+  \ }})
+  return prev_page_items + post_items + next_page_items
 endfunction
 
 
