@@ -98,7 +98,6 @@ function! s:browse(team_name, page)  "{{{2
 endfunction
 
 function! s:_browse(team_name, page) abort
-  " TODO: Support a:parmas to list an older page.
   let json = json_decode(s:.curl([
   \   '--silent',
   \   '--header',
