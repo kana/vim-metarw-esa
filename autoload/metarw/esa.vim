@@ -42,7 +42,11 @@ function! metarw#esa#read(fakepath)  "{{{2
     return ['error', 'Invalid path']
   endif
 
-  return ['read', {-> s:read(a:fakepath)}]
+  if tokens[1] ==# 'recent'
+    return s:browse(tokens[0], tokens[2])
+  else
+    return ['read', {-> s:read(a:fakepath)}]
+  endif
 endfunction
 
 
@@ -51,7 +55,7 @@ endfunction
 function! metarw#esa#write(fakepath, line1, line2, append_p)  "{{{2
   " Note: append_p is not supported.
   let tokens = s:parse_fakepath(a:fakepath)
-  if tokens is 0
+  if tokens is 0 || tokens[1] ==# 'recent'
     return ['error', 'Invalid path']
   endif
 
@@ -83,12 +87,51 @@ endfunction
 
 
 
+function! s:browse(team_name, page)  "{{{2
+  try
+    return ['browse', s:_browse(a:team_name, a:page)]
+  catch
+    let e = v:exception
+  endtry
+
+  return ['error', substitute(e, '^Vim(echoerr):', '', '')]
+endfunction
+
+function! s:_browse(team_name, page) abort
+  " TODO: Support a:parmas to list an older page.
+  let json = json_decode(s:.curl([
+  \   '--silent',
+  \   '--header',
+  \   printf('Authorization: Bearer %s', s:.get_esa_access_token()),
+  \   printf('https://api.esa.io/v1/teams/%s/posts?page=%d', a:team_name, a:page),
+  \ ]))
+
+  let prev_page_items = json.prev_page != v:null ? [{
+  \   'label': '(prev page)',
+  \   'fakepath': json.prev_page == 1 ? 'esa:recent' : 'esa:recent:' . json.prev_page,
+  \ }] : []
+  let next_page_items = json.next_page != v:null ? [{
+  \   'label': '(next page)',
+  \   'fakepath': 'esa:recent:' . json.next_page,
+  \ }] : []
+  let post_items = map(json.posts, {_, v -> {
+  \   'label': v.full_name,
+  \   'fakepath': 'esa:' . v.number,
+  \ }})
+  return prev_page_items + post_items + next_page_items
+endfunction
+
+
+
+
 function! s:parse_fakepath(fakepath)  "{{{2
   " esa:{post_number}
   " esa:{post_number}:{title}
   " esa:new:{title}
+  " esa:recent
+  " esa:recent:{page}
 
-  let tokens = matchlist(a:fakepath, '\v^esa:(\d+|new)%(:(.*))?')
+  let tokens = matchlist(a:fakepath, '\v^esa:(\d+|new|recent)%(:(.*))?')
   if tokens == []
     return 0
   endif
@@ -97,10 +140,19 @@ function! s:parse_fakepath(fakepath)  "{{{2
     return 0
   endif
 
-  let post_number = tokens[1]
-  let title = tokens[2]
+  if tokens[1] ==# 'recent'
+    let page = tokens[2]
+    if page !~# '^\d*$'
+      return 0
+    endif
 
-  return [g:metarw_esa_default_team_name, post_number, title]
+    return [g:metarw_esa_default_team_name, 'recent', page != '' ? page : 1]
+  else
+    let post_number = tokens[1]
+    let title = tokens[2]
+
+    return [g:metarw_esa_default_team_name, post_number, title]
+  endif
 endfunction
 
 
