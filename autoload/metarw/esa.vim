@@ -175,7 +175,13 @@ endfunction
 function! s:_read(fakepath) abort
   let [team_name, post_number, title] = s:parse_fakepath(a:fakepath)
 
+  if exists('b:metarw_esa_state') && b:metarw_esa_state ==# 'loading'
+    echoerr 'Wait a moment.  Still loading data...'
+    return
+  endif
+
   let b:metarw_esa_state = 'loading'
+
   " TODO: Make it mockable.
   let b:metarw_esa_job = job_start([
   \   'curl',
@@ -191,6 +197,9 @@ endfunction
 
 function! s:_read_after_curl(channel, fakepath, bufnr) abort
   " TODO: Use bufnr to buffer-local operations.
+
+  let b:metarw_esa_state = 'done'
+
   let lines = []
   while ch_status(a:channel, {'part': 'out'}) ==# 'buffered'
     call add(lines, ch_read(a:channel))
