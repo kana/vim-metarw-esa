@@ -209,7 +209,6 @@ function! s:_read_after_curl(channel, fakepath, bufnr) abort
   " used to invoke s:read.
   if bufname('%') ==# a:fakepath && title == ''
     silent file `=a:fakepath . ':' . json.full_name`
-    setfiletype markdown
     let b:metarw_esa_wip = json.wip
     let b:metarw_esa_post_number = str2nr(post_number)
   endif
@@ -224,8 +223,10 @@ function! s:_read_after_curl(channel, fakepath, bufnr) abort
   let &l:undolevels = -1
   execute 'normal!' "a \<BS>\<Esc>"
   let &l:undolevels = undolevels
-
   setlocal nomodified
+
+  " For some reason, reloading esa content disables syntax highlighting.
+  setfiletype markdown
 endfunction
 
 
