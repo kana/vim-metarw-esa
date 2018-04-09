@@ -105,6 +105,10 @@ function! s:_browse(team_name, page) abort
   \   printf('Authorization: Bearer %s', s:.get_esa_access_token()),
   \   printf('https://api.esa.io/v1/teams/%s/posts?page=%d', a:team_name, a:page),
   \ ]))
+  if has_key(json, 'error')
+    echoerr 'esa.io:' json.message
+    return
+  endif
 
   let prev_page_items = json.prev_page != v:null ? [{
   \   'label': '(prev page)',
