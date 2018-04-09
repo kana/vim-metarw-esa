@@ -84,12 +84,16 @@ esa:{post}:{title}
         Note that this notation cannot be used to :write to another esa post
         to avoid unexpected overwriting.
 
-
 						*esa:new:{title}*
 esa:new:{title}
         Write-only.  This will create a new esa post.  The current buffer will
         be renamed as |esa:{post}:{title}| where {post} is the post number of
         the newly craeted post.
+
+						*esa:recent*
+esa:recent
+        Read-only.  Show a list of recent esa posts with
+        |metarw-content-browser|.
 
 
 
