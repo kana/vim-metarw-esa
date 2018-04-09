@@ -377,5 +377,97 @@ describe 'metarw-esa'
     \ ]
   end
 
+  it 'enables to list recent esa posts'
+    " Opening the list
+
+    function! Mock(args)
+      let b:list_args = a:args
+      return json_encode({
+      \   'posts': [
+      \     {
+      \       'number': 123,
+      \       'full_name': 'poem/BOOM BOOM GIRL',
+      \       'wip': v:true,
+      \       'updated_at': '2018-04-09T19:45:00+09:00',
+      \       'updated_by': {'screen_name': 'SUZY LAZY'},
+      \     },
+      \     {
+      \       'number': 456,
+      \       'full_name': 'poem/BOOM BOOM FIRE',
+      \       'wip': v:false,
+      \       'updated_at': '2018-04-09T19:42:57+09:00',
+      \       'updated_by': {'screen_name': 'D.ESSEX'},
+      \     },
+      \     {
+      \       'number': 789,
+      \       'full_name': 'poem/BOOM BOOM DJ',
+      \       'wip': v:true,
+      \       'updated_at': '2018-04-09T19:40:59+09:00',
+      \       'updated_by': {'screen_name': 'MIRKA'},
+      \     },
+      \   ],
+      \   'prev_page': v:null,
+      \   'next_page': 2,
+      \   'total_count': 30,
+      \   'page': 1,
+      \   'per_page': 20,
+      \   'max_per_page': 100,
+      \ })
+    endfunction
+    call Set('s:curl', {args -> Mock(args)})
+
+    edit esa:recent
+
+    Expect bufname('%') ==# 'esa:recent'
+    Expect getline(1, '$') ==# [
+    \   'metarw content browser',
+    \   'esa:recent',
+    \   '',
+    \   'poem/BOOM BOOM GIRL',
+    \   'poem/BOOM BOOM FIRE',
+    \   'poem/BOOM BOOM DJ',
+    \   '(next page)',
+    \ ]
+    Expect &l:filetype ==# 'metarw'
+    Expect exists('b:metarw_esa_post_number') to_be_false
+    Expect exists('b:metarw_esa_wip') to_be_false
+    Expect b:list_args ==# [
+    \   '--silent',
+    \   '--header',
+    \   'Authorization: Bearer xyzzy',
+    \   'https://api.esa.io/v1/teams/myteam/posts?page=1',
+    \ ]
+
+    " Open an post in the list
+
+    function! Mock(args)
+      let b:read_args = a:args
+      return json_encode({
+      \   'full_name': 'poem/BOOM BOOM FIRE',
+      \   'body_md': "Big\ndesire!",
+      \   'wip': v:false,
+      \ })
+    endfunction
+    call Set('s:curl', {args -> Mock(args)})
+
+    $-2
+    execute 'normal' "\<Return>"
+
+    Expect bufname('%') ==# 'esa:456:poem/BOOM BOOM FIRE'
+    Expect getline(1, '$') ==# [
+    \   'Big',
+    \   'desire!',
+    \ ]
+    Expect &l:filetype ==# 'markdown'
+    Expect b:metarw_esa_post_number == 456
+    Expect b:metarw_esa_wip == v:false
+    Expect b:read_args ==# [
+    \   '--silent',
+    \   '--header',
+    \   'Authorization: Bearer xyzzy',
+    \   'https://api.esa.io/v1/teams/myteam/posts/456',
+    \ ]
+  end
+
   " TODO: Add tests on error response from esa API.
 end
