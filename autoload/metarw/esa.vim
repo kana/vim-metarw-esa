@@ -183,6 +183,7 @@ function! s:_read(fakepath) abort
   let b:metarw_esa_state = 'loading'
 
   " TODO: Make it mockable.
+  " TODO: Run asynchronously only for typical :edit, not for :read.
   let b:metarw_esa_job = job_start([
   \   'curl',
   \   '--silent',
