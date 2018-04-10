@@ -198,6 +198,12 @@ endfunction
 
 function! s:_read_after_curl(channel, fakepath, bufnr) abort
   " TODO: Use bufnr to buffer-local operations.
+  " - Tweaking buffer-local options
+  " - Tweaking buffer-local variables
+  " - Modifying buffer content other than setbufline -- for example, :delete
+  " - Renaming buffer name with :file
+  " There seems nothing to do the last two operations without changing the
+  " current buffer.
 
   let b:metarw_esa_state = 'done'
 
