@@ -190,17 +190,27 @@ function! s:_read(fakepath) abort
     return
   endif
 
-  let b:metarw_esa_state = 'loading'
-
-  " TODO: Run asynchronously only for typical :edit, not for :read.
-  call s:.curl_async([
+  let curl_args = [
   \   '--silent',
   \   '--header',
   \   printf('Authorization: Bearer %s', s:.get_esa_access_token()),
   \   printf('https://api.esa.io/v1/teams/%s/posts/%s', team_name, post_number),
-  \ ], {response -> s:_read_after_curl(response, a:fakepath, bufnr(''))}
-  \ )
-  return ['Now loading...']
+  \ ]
+  if metarw#is_preparing_to_edit()
+    let b:metarw_esa_state = 'loading'
+    call s:.curl_async(
+    \   curl_args,
+    \   {response -> s:_read_after_curl(response, a:fakepath, bufnr(''))}
+    \ )
+    return ['Now loading...']
+  else
+    let json = json_decode(s:.curl(curl_args))
+    if has_key(json, 'error')
+      echoerr 'esa.io:' json.message
+      return
+    endif
+    return split(json.body_md, '\r\?\n', !0)
+  endif
 endfunction
 
 function! s:_read_after_curl(response, fakepath, bufnr) abort
@@ -222,8 +232,6 @@ function! s:_read_after_curl(response, fakepath, bufnr) abort
 
   let [team_name, post_number, title] = s:parse_fakepath(a:fakepath)
 
-  " TODO: This is ad hoc.  This should be determined by what Ex command is
-  " used to invoke s:read.
   if bufname('%') ==# a:fakepath && title == ''
     silent file `=a:fakepath . ':' . json.full_name`
     let b:metarw_esa_wip = json.wip
