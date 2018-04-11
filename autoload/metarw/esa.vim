@@ -248,6 +248,7 @@ function! s:_read_after_curl_core(response, fakepath, bufnr) abort
 
   if bufname('%') ==# a:fakepath && title == ''
     silent file `=a:fakepath . ':' . json.full_name`
+    setlocal bufhidden=hide
     let b:metarw_esa_wip = json.wip
     let b:metarw_esa_post_number = str2nr(post_number)
   endif
