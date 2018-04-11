@@ -219,7 +219,18 @@ function! s:_read(fakepath) abort
   endif
 endfunction
 
-function! s:_read_after_curl(response, fakepath, bufnr) abort
+function! s:_read_after_curl(response, fakepath, bufnr)
+  try
+    call s:_read_after_curl_core(a:response, a:fakepath, a:bufnr)
+    return
+  catch
+    let e = v:exception
+  endtry
+
+  echoerr substitute(e, '^Vim(echoerr):', '', '')
+endfunction
+
+function! s:_read_after_curl_core(response, fakepath, bufnr) abort
   " TODO: Use bufnr to buffer-local operations.
   " - Tweaking buffer-local options
   " - Tweaking buffer-local variables
