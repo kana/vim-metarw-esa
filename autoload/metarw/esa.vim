@@ -97,6 +97,18 @@ endfunction
 
 
 
+function! s:assert_esa_json(json) abort  "{{{2
+  if type(a:json) != v:t_dict
+    echoerr 'esa.io: Panic!'
+  endif
+  if has_key(a:json, 'error')
+    echoerr 'esa.io:' a:json.message
+  endif
+endfunction
+
+
+
+
 function! s:browse(team_name, page)  "{{{2
   try
     return ['browse', s:_browse(a:team_name, a:page)]
@@ -114,10 +126,7 @@ function! s:_browse(team_name, page) abort
   \   printf('Authorization: Bearer %s', s:.get_esa_access_token()),
   \   printf('https://api.esa.io/v1/teams/%s/posts?page=%d', a:team_name, a:page),
   \ ]))
-  if has_key(json, 'error')
-    echoerr 'esa.io:' json.message
-    return
-  endif
+  call s:assert_esa_json(json)
 
   let prev_page_items = json.prev_page != v:null ? [{
   \   'label': '(prev page)',
@@ -205,10 +214,7 @@ function! s:_read(fakepath) abort
     return ['Now loading...']
   else
     let json = json_decode(s:.curl(curl_args))
-    if has_key(json, 'error')
-      echoerr 'esa.io:' json.message
-      return
-    endif
+    call s:assert_esa_json(json)
     return split(json.body_md, '\r\?\n', !0)
   endif
 endfunction
@@ -225,10 +231,7 @@ function! s:_read_after_curl(response, fakepath, bufnr) abort
   let b:metarw_esa_state = 'done'
 
   let json = json_decode(a:response)
-  if has_key(json, 'error')
-    echoerr 'esa.io:' json.message
-    return
-  endif
+  call s:assert_esa_json(json)
 
   let [team_name, post_number, title] = s:parse_fakepath(a:fakepath)
 
@@ -332,10 +335,7 @@ function! s:_write(team_name, post_number, title, lines) abort
   \   json_encode(json),
   \   url,
   \ ]))
-  if has_key(json, 'error')
-    echoerr 'esa.io:' json.message
-    return
-  endif
+  call s:assert_esa_json(json)
 
   let b:metarw_esa_wip = wip
   if a:post_number ==# 'new'
