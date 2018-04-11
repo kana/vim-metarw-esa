@@ -11,12 +11,18 @@ describe 'metarw-esa'
   end
 
   it 'enables to write an esa post via esa:{post}:{title}'
-    call Set('s:curl', {-> json_encode({
-    \   'full_name': 'poem/This is a test',
-    \   'body_md': "DIN\nDON\nDAN",
-    \   'wip': v:true,
-    \ })})
+    function! Mock(args, callback)
+      let b:read_args = a:args
+      call timer_start(0, {-> a:callback(json_encode({
+      \   'full_name': 'poem/This is a test',
+      \   'body_md': "DIN\nDON\nDAN",
+      \   'wip': v:true,
+      \ }))})
+      return 'Now loading...'
+    endfunction
+    call Set('s:curl_async', {args, callback -> Mock(args, callback)})
     edit esa:1234
+    sleep 1m
 
     Expect bufname('%') ==# 'esa:1234:poem/This is a test'
     Expect getline(1, '$') ==# ['DIN', 'DON', 'DAN']
@@ -58,12 +64,18 @@ describe 'metarw-esa'
   end
 
   it 'keeps WIP status of an esa post with :write'
-    call Set('s:curl', {-> json_encode({
-    \   'full_name': 'poem/This is a test',
-    \   'body_md': "DIN\nDON\nDAN",
-    \   'wip': v:false,
-    \ })})
+    function! Mock(args, callback)
+      let b:read_args = a:args
+      call timer_start(0, {-> a:callback(json_encode({
+      \   'full_name': 'poem/This is a test',
+      \   'body_md': "DIN\nDON\nDAN",
+      \   'wip': v:false,
+      \ }))})
+      return 'Now loading...'
+    endfunction
+    call Set('s:curl_async', {args, callback -> Mock(args, callback)})
     edit esa:1234
+    sleep 1m
 
     Expect b:metarw_esa_wip == v:false
 
@@ -96,12 +108,18 @@ describe 'metarw-esa'
   end
 
   it 'enables to publish an esa post with :write!'
-    call Set('s:curl', {-> json_encode({
-    \   'full_name': 'poem/This is a test',
-    \   'body_md': "DIN\nDON\nDAN",
-    \   'wip': v:true,
-    \ })})
+    function! Mock(args, callback)
+      let b:read_args = a:args
+      call timer_start(0, {-> a:callback(json_encode({
+      \   'full_name': 'poem/This is a test',
+      \   'body_md': "DIN\nDON\nDAN",
+      \   'wip': v:true,
+      \ }))})
+      return 'Now loading...'
+    endfunction
+    call Set('s:curl_async', {args, callback -> Mock(args, callback)})
     edit esa:1234
+    sleep 1m
 
     Expect b:metarw_esa_wip == v:true
 
@@ -143,13 +161,19 @@ describe 'metarw-esa'
   end
 
   it 'does not support writing to an esa post from another esa post'
-    call Set('s:curl', {-> json_encode({
-    \   'full_name': 'poem/This is a test 2.0',
-    \   'body_md': "BIM\nBUM\nBAM",
-    \   'wip': v:false,
-    \ })})
+    function! Mock(args, callback)
+      let b:read_args = a:args
+      call timer_start(0, {-> a:callback(json_encode({
+      \   'full_name': 'poem/This is a test 2.0',
+      \   'body_md': "BIM\nBUM\nBAM",
+      \   'wip': v:false,
+      \ }))})
+      return 'Now loading...'
+    endfunction
+    call Set('s:curl_async', {args, callback -> Mock(args, callback)})
 
     edit esa:5678
+    sleep 1m
 
     call Set('s:curl', {args -> execute('let b:write_args = args')})
 
@@ -160,13 +184,19 @@ describe 'metarw-esa'
   end
 
   it 'refuses writing to an esa post without title'
-    call Set('s:curl', {-> json_encode({
-    \   'full_name': 'poem/This is a test 2.0',
-    \   'body_md': "BIM\nBUM\nBAM",
-    \   'wip': v:false,
-    \ })})
+    function! Mock(args, callback)
+      let b:read_args = a:args
+      call timer_start(0, {-> a:callback(json_encode({
+      \   'full_name': 'poem/This is a test 2.0',
+      \   'body_md': "BIM\nBUM\nBAM",
+      \   'wip': v:false,
+      \ }))})
+      return 'Now loading...'
+    endfunction
+    call Set('s:curl_async', {args, callback -> Mock(args, callback)})
 
     edit esa:5678
+    sleep 1m
 
     call Set('s:curl', {args -> execute('let b:write_args = args')})
 
@@ -178,12 +208,18 @@ describe 'metarw-esa'
   end
 
   it 'stops as soon as possible if an error occurs while writing an esa post'
-    call Set('s:curl', {-> json_encode({
-    \   'full_name': 'poem/This is a test',
-    \   'body_md': "DIN\nDON\nDAN",
-    \   'wip': v:true,
-    \ })})
+    function! Mock(args, callback)
+      let b:read_args = a:args
+      call timer_start(0, {-> a:callback(json_encode({
+      \   'full_name': 'poem/This is a test',
+      \   'body_md': "DIN\nDON\nDAN",
+      \   'wip': v:true,
+      \ }))})
+      return 'Now loading...'
+    endfunction
+    call Set('s:curl_async', {args, callback -> Mock(args, callback)})
     edit esa:1234
+    sleep 1m
 
     Expect b:metarw_esa_wip == v:true
 
@@ -197,13 +233,19 @@ describe 'metarw-esa'
   end
 
   it 'is an error when esa responds so while writing'
-    call Set('s:curl', {-> json_encode({
-    \   'full_name': 'poem/This is a test',
-    \   'body_md': "DIN\nDON\nDAN",
-    \   'wip': v:true,
-    \ })})
+    function! Mock(args, callback)
+      let b:read_args = a:args
+      call timer_start(0, {-> a:callback(json_encode({
+      \   'full_name': 'poem/This is a test',
+      \   'body_md': "DIN\nDON\nDAN",
+      \   'wip': v:true,
+      \ }))})
+      return 'Now loading...'
+    endfunction
+    call Set('s:curl_async', {args, callback -> Mock(args, callback)})
 
     edit esa:1234
+    sleep 1m
     $ put =['WOO']
 
     Expect &l:modified to_be_true
@@ -271,7 +313,7 @@ describe 'metarw-esa'
   end
 
   it 'is an error to read esa:new:{title}'
-    call Set('s:curl', {-> 'nope'})
+    call Set('s:curl_async', {-> 'nope'})
 
     Expect bufname('%') ==# ''
     Expect getline(1, '$') ==# ['']
