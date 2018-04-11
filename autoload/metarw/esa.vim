@@ -80,6 +80,16 @@ endfunction
 
 
 
+function! s:.curl_async(args, callback)  "{{{2
+  call job_start(['curl'] + a:args, {
+  \   'mode': 'raw',
+  \   'close_cb': {channel -> a:callback(s:read_all_from_channel(channel))},
+  \ })
+endfunction
+
+
+
+
 function! s:.get_esa_access_token()  "{{{2
   return readfile(expand('~/.esa-token'))[0]
 endfunction
@@ -243,6 +253,17 @@ function! s:_read_after_curl(channel, fakepath, bufnr) abort
 
   " For some reason, reloading esa content disables syntax highlighting.
   setfiletype markdown
+endfunction
+
+
+
+
+function! s:read_all_from_channel(channel)  "{{{2
+  let chunks = []
+  while ch_status(a:channel, {'part': 'out'}) ==# 'buffered'
+    call add(chunks, ch_read(a:channel))
+  endwhile
+  return join(chunks, '')
 endfunction
 
 
