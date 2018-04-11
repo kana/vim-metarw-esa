@@ -192,21 +192,18 @@ function! s:_read(fakepath) abort
 
   let b:metarw_esa_state = 'loading'
 
-  " TODO: Make it mockable.
   " TODO: Run asynchronously only for typical :edit, not for :read.
-  let b:metarw_esa_job = job_start([
-  \   'curl',
+  call s:.curl_async([
   \   '--silent',
   \   '--header',
   \   printf('Authorization: Bearer %s', s:.get_esa_access_token()),
   \   printf('https://api.esa.io/v1/teams/%s/posts/%s', team_name, post_number),
-  \ ], {
-  \   'close_cb': {channel -> s:_read_after_curl(channel, a:fakepath, bufnr(''))}
-  \ } )
+  \ ], {response -> s:_read_after_curl(response, a:fakepath, bufnr(''))}
+  \ )
   return ['Now loading...']
 endfunction
 
-function! s:_read_after_curl(channel, fakepath, bufnr) abort
+function! s:_read_after_curl(response, fakepath, bufnr) abort
   " TODO: Use bufnr to buffer-local operations.
   " - Tweaking buffer-local options
   " - Tweaking buffer-local variables
@@ -217,13 +214,7 @@ function! s:_read_after_curl(channel, fakepath, bufnr) abort
 
   let b:metarw_esa_state = 'done'
 
-  let lines = []
-  while ch_status(a:channel, {'part': 'out'}) ==# 'buffered'
-    call add(lines, ch_read(a:channel))
-  endwhile
-  let response = join(lines, "\n")
-
-  let json = json_decode(response)
+  let json = json_decode(a:response)
   if has_key(json, 'error')
     echoerr 'esa.io:' json.message
     return
