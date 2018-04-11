@@ -45,7 +45,7 @@ pages with fakepaths like "esa:my-team:1234", or simply "esa:1234".
 
 Requirements:
 - Vim 8.0 or later
-- |metarw| 0.1 or later    https://github.com/kana/vim-metarw
+- |metarw| 0.2 or later    https://github.com/kana/vim-metarw
 
 Latest version:
 https://github.com/kana/vim-metarw-esa
