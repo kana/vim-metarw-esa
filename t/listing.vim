@@ -73,18 +73,20 @@ describe 'metarw-esa'
 
     " Open an post in the list
 
-    function! Mock(args)
+    function! Mock(args, callback)
       let b:read_args = a:args
-      return json_encode({
+      call timer_start(0, {-> a:callback(json_encode({
       \   'full_name': 'poem/BOOM BOOM FIRE',
       \   'body_md': "Big\ndesire!",
       \   'wip': v:false,
-      \ })
+      \ }))})
+      return 'Now loading...'
     endfunction
-    call Set('s:curl', {args -> Mock(args)})
+    call Set('s:curl_async', {args, callback -> Mock(args, callback)})
 
     $-2
     execute 'normal' "\<Return>"
+    sleep 1m
 
     Expect bufname('%') ==# 'esa:456:poem/BOOM BOOM FIRE'
     Expect getline(1, '$') ==# [
