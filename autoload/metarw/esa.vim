@@ -204,10 +204,11 @@ function! s:_read(team_name, post_number, title) abort
   \   printf('https://api.esa.io/v1/teams/%s/posts/%s', a:team_name, a:post_number),
   \ ]
   if metarw#is_preparing_to_edit()
+    let bufnr = bufnr('')
     let b:metarw_esa_state = 'loading'
     call s:.curl_async(
     \   curl_args,
-    \   {response -> s:_read_after_curl(response, bufnr(''), a:post_number, a:title)}
+    \   {response -> s:_read_after_curl(response, bufnr, a:post_number, a:title)}
     \ )
     return ['Now loading...']
   else
