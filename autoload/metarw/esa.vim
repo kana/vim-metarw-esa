@@ -45,7 +45,7 @@ function! metarw#esa#read(fakepath)  "{{{2
   if tokens[1] ==# 'recent'
     return s:browse(tokens[0], tokens[2])
   else
-    return ['read', {-> s:read(a:fakepath)}]
+    return ['read', {-> s:read(tokens[0], tokens[1], tokens[2])}]
   endif
 endfunction
 
@@ -180,9 +180,9 @@ endfunction
 
 
 
-function! s:read(fakepath)  "{{{2
+function! s:read(team_name, post_number, title)  "{{{2
   try
-    return s:_read(a:fakepath)
+    return s:_read(a:team_name, a:post_number, a:title)
   catch
     let e = v:exception
   endtry
@@ -191,9 +191,7 @@ function! s:read(fakepath)  "{{{2
   return []
 endfunction
 
-function! s:_read(fakepath) abort
-  let [team_name, post_number, title] = s:parse_fakepath(a:fakepath)
-
+function! s:_read(team_name, post_number, title) abort
   if exists('b:metarw_esa_state') && b:metarw_esa_state ==# 'loading'
     echoerr 'Wait a moment.  Still loading data...'
     return
@@ -203,13 +201,13 @@ function! s:_read(fakepath) abort
   \   '--silent',
   \   '--header',
   \   printf('Authorization: Bearer %s', s:.get_esa_access_token()),
-  \   printf('https://api.esa.io/v1/teams/%s/posts/%s', team_name, post_number),
+  \   printf('https://api.esa.io/v1/teams/%s/posts/%s', a:team_name, a:post_number),
   \ ]
   if metarw#is_preparing_to_edit()
     let b:metarw_esa_state = 'loading'
     call s:.curl_async(
     \   curl_args,
-    \   {response -> s:_read_after_curl(response, bufnr(''), post_number, title)}
+    \   {response -> s:_read_after_curl(response, bufnr(''), a:post_number, a:title)}
     \ )
     return ['Now loading...']
   else
