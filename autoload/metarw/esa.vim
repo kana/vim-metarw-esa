@@ -202,6 +202,7 @@ function! s:_read(team_name, post_number, title) abort
   if existing_bufnr != -1
     execute existing_bufnr 'buffer'
     execute bufnr 'bwipeout'
+    %delete _
   endif
 
   let curl_args = [
