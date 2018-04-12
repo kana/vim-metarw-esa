@@ -21,6 +21,17 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
+" Variables  "{{{1
+
+let s:bufnr_from_post_number_map = {}
+
+
+
+
+
+
+
+
 " Interface  "{{{1
 function! metarw#esa#_scope()  "{{{2
   return s:
@@ -205,13 +216,14 @@ function! s:_read(team_name, post_number, title) abort
   \ ]
   if metarw#is_preparing_to_edit()
     let bufnr = expand('<abuf>')
-    let existing_bufnr = bufnr(printf('^esa:%d:', a:post_number))
+    let existing_bufnr = get(s:bufnr_from_post_number_map, a:post_number, -1)
     if existing_bufnr != -1 && existing_bufnr != bufnr
       execute existing_bufnr 'buffer'
       execute bufnr 'bwipeout'
       let bufnr = existing_bufnr
       %delete _
     endif
+    let s:bufnr_from_post_number_map[a:post_number] = bufnr
 
     let b:metarw_esa_state = 'loading'
 
