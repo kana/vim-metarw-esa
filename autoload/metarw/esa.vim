@@ -197,6 +197,13 @@ function! s:_read(team_name, post_number, title) abort
     return
   endif
 
+  let bufnr = bufnr('')
+  let existing_bufnr = bufnr(printf('^esa:%d:', a:post_number))
+  if existing_bufnr != -1
+    execute existing_bufnr 'buffer'
+    execute bufnr 'bwipeout'
+  endif
+
   let curl_args = [
   \   '--silent',
   \   '--header',
@@ -204,7 +211,6 @@ function! s:_read(team_name, post_number, title) abort
   \   printf('https://api.esa.io/v1/teams/%s/posts/%s', a:team_name, a:post_number),
   \ ]
   if metarw#is_preparing_to_edit()
-    let bufnr = bufnr('')
     let b:metarw_esa_state = 'loading'
 
     " Set here to avoid losing the buffer content in background.
