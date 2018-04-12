@@ -197,7 +197,7 @@ function! s:_read(team_name, post_number, title) abort
     return
   endif
 
-  let bufnr = bufnr('')
+  let bufnr = expand('<abuf>')
   let existing_bufnr = bufnr(printf('^esa:%d:', a:post_number))
   if existing_bufnr != -1
     execute existing_bufnr 'buffer'
