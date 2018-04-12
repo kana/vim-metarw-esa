@@ -206,6 +206,10 @@ function! s:_read(team_name, post_number, title) abort
   if metarw#is_preparing_to_edit()
     let bufnr = bufnr('')
     let b:metarw_esa_state = 'loading'
+
+    " Set here to avoid losing the buffer content in background.
+    setlocal bufhidden=hide
+
     call s:.curl_async(
     \   curl_args,
     \   {response -> s:_read_after_curl(response, bufnr, a:post_number, a:title)}
@@ -260,7 +264,6 @@ function! s:_read_after_curl_core_core(response, post_number, title) abort
 
   if a:title == ''
     silent file `='esa:' . a:post_number . ':' . json.full_name`
-    setlocal bufhidden=hide
     let b:metarw_esa_post_number = str2nr(a:post_number)
   endif
 
