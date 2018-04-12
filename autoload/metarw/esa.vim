@@ -237,12 +237,12 @@ function! s:_read_after_curl_core(response, fakepath, bufnr) abort
   " be run in a temporary tabpage.
 
   if bufnr('') == a:bufnr
-    return s:_read_after_curl_core_core(a:response, a:fakepath, a:bufnr)
+    return s:_read_after_curl_core_core(a:response, a:fakepath)
   else
     try
       let tabpagenr = tabpagenr()
       noautocmd execute 'tab' a:bufnr 'sbuffer'
-      return s:_read_after_curl_core_core(a:response, a:fakepath, a:bufnr)
+      return s:_read_after_curl_core_core(a:response, a:fakepath)
     finally
       noautocmd tabclose
       noautocmd execute 'tabnext' tabpagenr
@@ -250,7 +250,7 @@ function! s:_read_after_curl_core(response, fakepath, bufnr) abort
   endif
 endfunction
 
-function! s:_read_after_curl_core_core(response, fakepath, bufnr) abort
+function! s:_read_after_curl_core_core(response, fakepath) abort
   let b:metarw_esa_state = 'done'
 
   let json = json_decode(a:response)
