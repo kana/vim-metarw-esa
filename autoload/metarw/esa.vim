@@ -260,7 +260,7 @@ function! s:_read_after_curl_core_core(response, fakepath) abort
   let b:metarw_esa_wip = json.wip
 
   let [team_name, post_number, title] = s:parse_fakepath(a:fakepath)
-  if bufname('%') ==# a:fakepath && title == ''
+  if title == ''
     silent file `=a:fakepath . ':' . json.full_name`
     setlocal bufhidden=hide
     let b:metarw_esa_post_number = str2nr(post_number)
