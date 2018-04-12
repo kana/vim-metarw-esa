@@ -127,6 +127,11 @@ BUGS						*metarw-esa-bugs*
 ==============================================================================
 CHANGELOG					*metarw-esa-changelog*
 
+0.4.0	2018-04-12T22:26:31+09:00		*metarw-esa-changelog-0.4.0*
+        - Load |esa:{post}| asynchronously.
+        - Fix various edge cases while opening |esa:{post}|.
+        - Fix to show a proper message when esa.io responds an error.
+
 0.3.0	2018-04-09T21:05:29+09:00		*metarw-esa-changelog-0.3.0*
         - Support |esa:recent| to list recent esa posts.
 
