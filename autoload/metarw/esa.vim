@@ -209,7 +209,7 @@ function! s:_read(fakepath) abort
     let b:metarw_esa_state = 'loading'
     call s:.curl_async(
     \   curl_args,
-    \   {response -> s:_read_after_curl(response, a:fakepath, bufnr(''))}
+    \   {response -> s:_read_after_curl(response, bufnr(''), post_number, title)}
     \ )
     return ['Now loading...']
   else
@@ -219,9 +219,9 @@ function! s:_read(fakepath) abort
   endif
 endfunction
 
-function! s:_read_after_curl(response, fakepath, bufnr)
+function! s:_read_after_curl(response, bufnr, post_number, title)
   try
-    call s:_read_after_curl_core(a:response, a:fakepath, a:bufnr)
+    call s:_read_after_curl_core(a:response, a:bufnr, a:post_number, a:title)
     return
   catch
     let e = v:exception
@@ -230,19 +230,19 @@ function! s:_read_after_curl(response, fakepath, bufnr)
   echoerr substitute(e, '^Vim(echoerr):', '', '')
 endfunction
 
-function! s:_read_after_curl_core(response, fakepath, bufnr) abort
+function! s:_read_after_curl_core(response, bufnr, post_number, title) abort
   " Since this function is asynchronously called, the target buffer might not
   " be shown in any window.  And some operations can only be applied to the
   " current buffer.  If the current buffer is not the target one, stuffs will
   " be run in a temporary tabpage.
 
   if bufnr('') == a:bufnr
-    return s:_read_after_curl_core_core(a:response, a:fakepath)
+    return s:_read_after_curl_core_core(a:response, a:post_number, a:title)
   else
     try
       let tabpagenr = tabpagenr()
       noautocmd execute 'tab' a:bufnr 'sbuffer'
-      return s:_read_after_curl_core_core(a:response, a:fakepath)
+      return s:_read_after_curl_core_core(a:response, a:post_number, a:title)
     finally
       noautocmd tabclose
       noautocmd execute 'tabnext' tabpagenr
@@ -250,7 +250,7 @@ function! s:_read_after_curl_core(response, fakepath, bufnr) abort
   endif
 endfunction
 
-function! s:_read_after_curl_core_core(response, fakepath) abort
+function! s:_read_after_curl_core_core(response, post_number, title) abort
   let b:metarw_esa_state = 'done'
 
   let json = json_decode(a:response)
@@ -259,11 +259,10 @@ function! s:_read_after_curl_core_core(response, fakepath) abort
   " Reset WIP every time because it might be changed outside Vim.
   let b:metarw_esa_wip = json.wip
 
-  let [team_name, post_number, title] = s:parse_fakepath(a:fakepath)
-  if title == ''
-    silent file `=a:fakepath . ':' . json.full_name`
+  if a:title == ''
+    silent file `='esa:' . a:post_number . ':' . json.full_name`
     setlocal bufhidden=hide
-    let b:metarw_esa_post_number = str2nr(post_number)
+    let b:metarw_esa_post_number = str2nr(a:post_number)
   endif
 
   " Replace tofu with the actual content.
