@@ -7,7 +7,7 @@ describe 'metarw-esa'
 
   after
     ResetContext
-    %bdelete!
+    %bwipeout!
   end
 
   it 'enables to read an esa post as markdown via esa:{post}'

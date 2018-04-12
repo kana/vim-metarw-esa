@@ -7,7 +7,7 @@ describe 'metarw-esa'
 
   after
     ResetContext
-    %bdelete!
+    %bwipeout!
   end
 
   it 'enables to write an esa post via esa:{post}:{title}'

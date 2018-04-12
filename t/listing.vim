@@ -7,7 +7,7 @@ describe 'metarw-esa'
 
   after
     ResetContext
-    %bdelete!
+    %bwipeout!
   end
 
   it 'enables to list recent esa posts'
