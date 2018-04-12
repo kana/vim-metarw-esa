@@ -206,7 +206,7 @@ function! s:_read(team_name, post_number, title) abort
   if metarw#is_preparing_to_edit()
     let bufnr = expand('<abuf>')
     let existing_bufnr = bufnr(printf('^esa:%d:', a:post_number))
-    if existing_bufnr != -1
+    if existing_bufnr != -1 && existing_bufnr != bufnr
       execute existing_bufnr 'buffer'
       execute bufnr 'bwipeout'
       let bufnr = existing_bufnr
