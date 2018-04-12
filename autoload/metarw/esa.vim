@@ -231,14 +231,26 @@ function! s:_read_after_curl(response, fakepath, bufnr)
 endfunction
 
 function! s:_read_after_curl_core(response, fakepath, bufnr) abort
-  " TODO: Use bufnr to buffer-local operations.
-  " - Tweaking buffer-local options
-  " - Tweaking buffer-local variables
-  " - Modifying buffer content other than setbufline -- for example, :delete
-  " - Renaming buffer name with :file
-  " There seems nothing to do the last two operations without changing the
-  " current buffer.
+  " Since this function is asynchronously called, the target buffer might not
+  " be shown in any window.  And some operations can only be applied to the
+  " current buffer.  If the current buffer is not the target one, stuffs will
+  " be run in a temporary tabpage.
 
+  if bufnr('') == a:bufnr
+    return s:_read_after_curl_core_core(a:response, a:fakepath, a:bufnr)
+  else
+    try
+      let tabpagenr = tabpagenr()
+      noautocmd execute 'tab' a:bufnr 'sbuffer'
+      return s:_read_after_curl_core_core(a:response, a:fakepath, a:bufnr)
+    finally
+      noautocmd tabclose
+      noautocmd execute 'tabnext' tabpagenr
+    endtry
+  endif
+endfunction
+
+function! s:_read_after_curl_core_core(response, fakepath, bufnr) abort
   let b:metarw_esa_state = 'done'
 
   let json = json_decode(a:response)
