@@ -267,13 +267,11 @@ function! s:_read_after_curl_core_core(response, post_number, title) abort
   let json = json_decode(a:response)
   call s:assert_esa_json(json)
 
+  " Reset buffer name every time to reflect the latest title.
   " Reset WIP every time because it might be changed outside Vim.
+  silent file `='esa:' . a:post_number . ':' . json.full_name`
   let b:metarw_esa_wip = json.wip
-
-  if a:title == ''
-    silent file `='esa:' . a:post_number . ':' . json.full_name`
-    let b:metarw_esa_post_number = str2nr(a:post_number)
-  endif
+  let b:metarw_esa_post_number = str2nr(a:post_number)
 
   " Replace tofu with the actual content.
   % delete _
