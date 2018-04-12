@@ -51,6 +51,58 @@ describe 'metarw-esa'
     \ ]
   end
 
+  it 'fetches a post in background even if the buffer is closed'
+    function! Mock(args, callback)
+      let b:read_args = a:args
+      call timer_start(0, {-> a:callback(json_encode({
+      \   'full_name': 'poem/This is a test',
+      \   'body_md': "DIN\nDON\nDAN",
+      \   'wip': v:true,
+      \ }))})
+      return 'Now loading...'
+    endfunction
+    call Set('s:curl_async', {args, callback -> Mock(args, callback)})
+
+    Expect bufname('%') ==# ''
+    Expect getline(1, '$') ==# ['']
+    Expect &l:filetype == ''
+    Expect exists('b:metarw_esa_post_number') to_be_false
+    Expect exists('b:metarw_esa_wip') to_be_false
+
+    edit esa:1234
+    let bufnr = bufnr('')
+
+    Expect bufname('%') ==# 'esa:1234'
+    Expect getline(1, '$') ==# ['Now loading...']
+    Expect &l:filetype == ''
+    Expect exists('b:metarw_esa_post_number') to_be_false
+    Expect exists('b:metarw_esa_wip') to_be_false
+
+    enew
+
+    Expect bufnr('') != bufnr
+    Expect getbufline(bufnr, 1, '$') ==# ['Now loading...']
+
+    sleep 1m
+
+    Expect getbufline(bufnr, 1, '$') ==# ['DIN', 'DON', 'DAN']
+
+    execute bufnr 'buffer'
+
+    Expect bufnr('') == bufnr
+    Expect bufname('%') ==# 'esa:1234:poem/This is a test'
+    Expect getline(1, '$') ==# ['DIN', 'DON', 'DAN']
+    Expect &l:filetype ==# 'markdown'
+    Expect b:metarw_esa_post_number == 1234
+    Expect b:metarw_esa_wip == v:true
+    Expect b:read_args ==# [
+    \   '--silent',
+    \   '--header',
+    \   'Authorization: Bearer xyzzy',
+    \   'https://api.esa.io/v1/teams/myteam/posts/1234',
+    \ ]
+  end
+
   it 'enables also to insert an esa post into the current buffer'
     function! Mock(args)
       let b:read_args = a:args
