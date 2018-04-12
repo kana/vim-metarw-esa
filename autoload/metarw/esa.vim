@@ -21,6 +21,17 @@
 "     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 "     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 " }}}
+" Variables  "{{{1
+
+let s:bufnr_from_post_number_map = {}
+
+
+
+
+
+
+
+
 " Interface  "{{{1
 function! metarw#esa#_scope()  "{{{2
   return s:
@@ -45,7 +56,7 @@ function! metarw#esa#read(fakepath)  "{{{2
   if tokens[1] ==# 'recent'
     return s:browse(tokens[0], tokens[2])
   else
-    return ['read', {-> s:read(a:fakepath)}]
+    return ['read', {-> s:read(tokens[0], tokens[1], tokens[2])}]
   endif
 endfunction
 
@@ -80,8 +91,30 @@ endfunction
 
 
 
+function! s:.curl_async(args, callback)  "{{{2
+  call job_start(['curl'] + a:args, {
+  \   'mode': 'raw',
+  \   'close_cb': {channel -> a:callback(s:read_all_from_channel(channel))},
+  \ })
+endfunction
+
+
+
+
 function! s:.get_esa_access_token()  "{{{2
   return readfile(expand('~/.esa-token'))[0]
+endfunction
+
+
+
+
+function! s:assert_esa_json(json) abort  "{{{2
+  if type(a:json) != v:t_dict
+    echoerr 'esa.io: Panic!'
+  endif
+  if has_key(a:json, 'error')
+    echoerr 'esa.io:' a:json.message
+  endif
 endfunction
 
 
@@ -104,10 +137,7 @@ function! s:_browse(team_name, page) abort
   \   printf('Authorization: Bearer %s', s:.get_esa_access_token()),
   \   printf('https://api.esa.io/v1/teams/%s/posts?page=%d', a:team_name, a:page),
   \ ]))
-  if has_key(json, 'error')
-    echoerr 'esa.io:' json.message
-    return
-  endif
+  call s:assert_esa_json(json)
 
   let prev_page_items = json.prev_page != v:null ? [{
   \   'label': '(prev page)',
@@ -161,9 +191,9 @@ endfunction
 
 
 
-function! s:read(fakepath)  "{{{2
+function! s:read(team_name, post_number, title)  "{{{2
   try
-    return s:_read(a:fakepath)
+    return s:_read(a:team_name, a:post_number, a:title)
   catch
     let e = v:exception
   endtry
@@ -172,32 +202,114 @@ function! s:read(fakepath)  "{{{2
   return []
 endfunction
 
-function! s:_read(fakepath) abort
-  let [team_name, post_number, title] = s:parse_fakepath(a:fakepath)
-
-  let json = json_decode(s:.curl([
-  \   '--silent',
-  \   '--header',
-  \   printf('Authorization: Bearer %s', s:.get_esa_access_token()),
-  \   printf('https://api.esa.io/v1/teams/%s/posts/%s', team_name, post_number),
-  \ ]))
-  if has_key(json, 'error')
-    echoerr 'esa.io:' json.message
+function! s:_read(team_name, post_number, title) abort
+  if exists('b:metarw_esa_state') && b:metarw_esa_state ==# 'loading'
+    echoerr 'Wait a moment.  Still loading data...'
     return
   endif
 
-  let markdown_content = json.body_md
+  let curl_args = [
+  \   '--silent',
+  \   '--header',
+  \   printf('Authorization: Bearer %s', s:.get_esa_access_token()),
+  \   printf('https://api.esa.io/v1/teams/%s/posts/%s', a:team_name, a:post_number),
+  \ ]
+  if metarw#is_preparing_to_edit()
+    let bufnr = expand('<abuf>')
+    let existing_bufnr = get(s:bufnr_from_post_number_map, a:post_number, -1)
+    if existing_bufnr != -1 && existing_bufnr != bufnr
+      execute existing_bufnr 'buffer'
+      execute bufnr 'bwipeout'
+      let bufnr = existing_bufnr
+      %delete _
+    endif
+    let s:bufnr_from_post_number_map[a:post_number] = bufnr
 
-  " TODO: This is ad hoc.  This should be determined by what Ex command is
-  " used to invoke s:read.
-  if bufname('%') ==# a:fakepath && title == ''
-    silent file `=a:fakepath . ':' . json.full_name`
-    setfiletype markdown
-    let b:metarw_esa_wip = json.wip
-    let b:metarw_esa_post_number = str2nr(post_number)
+    let b:metarw_esa_state = 'loading'
+
+    " Set here to avoid losing the buffer content in background.
+    setlocal bufhidden=hide
+
+    call s:.curl_async(
+    \   curl_args,
+    \   {response -> s:_read_after_curl(response, bufnr, a:post_number, a:title)}
+    \ )
+    return ['Now loading...']
+  else
+    let json = json_decode(s:.curl(curl_args))
+    call s:assert_esa_json(json)
+    return split(json.body_md, '\r\?\n', !0)
   endif
+endfunction
 
-  return split(markdown_content, '\r\?\n', 1)
+function! s:_read_after_curl(response, bufnr, post_number, title)
+  try
+    call s:_read_after_curl_core(a:response, a:bufnr, a:post_number, a:title)
+    return
+  catch
+    let e = v:exception
+  endtry
+
+  echoerr substitute(e, '^Vim(echoerr):', '', '')
+endfunction
+
+function! s:_read_after_curl_core(response, bufnr, post_number, title) abort
+  " Since this function is asynchronously called, the target buffer might not
+  " be shown in any window.  And some operations can only be applied to the
+  " current buffer.  If the current buffer is not the target one, stuffs will
+  " be run in a temporary tabpage.
+
+  if bufnr('') == a:bufnr
+    return s:_read_after_curl_core_core(a:response, a:post_number, a:title)
+  else
+    try
+      let tabpagenr = tabpagenr()
+      noautocmd execute 'tab' a:bufnr 'sbuffer'
+      return s:_read_after_curl_core_core(a:response, a:post_number, a:title)
+    finally
+      noautocmd tabclose
+      noautocmd execute 'tabnext' tabpagenr
+    endtry
+  endif
+endfunction
+
+function! s:_read_after_curl_core_core(response, post_number, title) abort
+  let b:metarw_esa_state = 'done'
+
+  let json = json_decode(a:response)
+  call s:assert_esa_json(json)
+
+  " Reset buffer name every time to reflect the latest title.
+  " Reset WIP every time because it might be changed outside Vim.
+  silent file `='esa:' . a:post_number . ':' . json.full_name`
+  let b:metarw_esa_wip = json.wip
+  let b:metarw_esa_post_number = str2nr(a:post_number)
+
+  " Replace tofu with the actual content.
+  % delete _
+  1 put =split(json.body_md, '\r\?\n', 1)
+  1 delete _
+
+  " Clear undo history to avoid undoing to nothing.
+  let undolevels = &l:undolevels
+  let &l:undolevels = -1
+  execute 'normal!' "a \<BS>\<Esc>"
+  let &l:undolevels = undolevels
+  setlocal nomodified
+
+  " For some reason, reloading esa content disables syntax highlighting.
+  setfiletype markdown
+endfunction
+
+
+
+
+function! s:read_all_from_channel(channel)  "{{{2
+  let chunks = []
+  while ch_status(a:channel, {'part': 'out'}) ==# 'buffered'
+    call add(chunks, ch_read(a:channel))
+  endwhile
+  return join(chunks, '')
 endfunction
 
 
@@ -267,10 +379,7 @@ function! s:_write(team_name, post_number, title, lines) abort
   \   json_encode(json),
   \   url,
   \ ]))
-  if has_key(json, 'error')
-    echoerr 'esa.io:' json.message
-    return
-  endif
+  call s:assert_esa_json(json)
 
   let b:metarw_esa_wip = wip
   if a:post_number ==# 'new'

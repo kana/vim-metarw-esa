@@ -45,7 +45,7 @@ pages with fakepaths like "esa:my-team:1234", or simply "esa:1234".
 
 Requirements:
 - Vim 8.0 or later
-- |metarw| 0.1 or later    https://github.com/kana/vim-metarw
+- |metarw| 0.2 or later    https://github.com/kana/vim-metarw
 
 Latest version:
 https://github.com/kana/vim-metarw-esa
@@ -135,13 +135,13 @@ CHANGELOG					*metarw-esa-changelog*
         - Abolish `esa:{team}:*` notations until supporting multiple teams.
 
 0.1.0	2018-04-07T19:06:34+09:00		*metarw-esa-changelog-0.1.0*
-	- Support `:write! esa:{post}:{title}` to ship it.
-	- Treat |esa:{post}| as markdown.
-	- Refuse writing to an esa post from another one to avoid unexpected
+        - Support `:write! esa:{post}:{title}` to ship it.
+        - Treat |esa:{post}| as markdown.
+        - Refuse writing to an esa post from another one to avoid unexpected
           overwriting.
 
 0.0.0	2018-04-07T02:01:23+09:00		*metarw-esa-changelog-0.0.0*
-	- Initial version.
+        - Initial version.
 
 
 
